@@ -18,7 +18,7 @@
 	$effect(() => {
 		cal.events = data.events;
 		cal.config = data.config;
-		cal.currentView = data.config.display.defaultView;
+		// currentView is already set from localStorage in CalendarState constructor
 	});
 
 	// Set up polling

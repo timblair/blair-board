@@ -14,13 +14,37 @@ import {
 	type CalendarView
 } from '$lib/utils/date-helpers';
 
+const VIEW_STORAGE_KEY = 'blair-board-current-view';
+
 export class CalendarState {
 	events = $state<CalendarEvent[]>([]);
-	currentView = $state<CalendarView>('week');
+	currentView = $state<CalendarView>(this.loadPersistedView());
 	referenceDate = $state<Date>(new Date());
 	loading = $state(false);
 	error = $state<string | null>(null);
 	config = $state<ClientConfig | null>(null);
+
+	private loadPersistedView(): CalendarView {
+		if (typeof window === 'undefined') return 'week';
+		try {
+			const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+			if (stored && ['week', 'weeknext', '4week', 'month'].includes(stored)) {
+				return stored as CalendarView;
+			}
+		} catch (e) {
+			console.warn('Failed to load persisted view:', e);
+		}
+		return 'week';
+	}
+
+	private persistView(view: CalendarView): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(VIEW_STORAGE_KEY, view);
+		} catch (e) {
+			console.warn('Failed to persist view:', e);
+		}
+	}
 
 	get weekStartsOn(): WeekStartsOn {
 		return (this.config?.display.weekStartsOn ?? 1) as WeekStartsOn;
@@ -114,5 +138,6 @@ export class CalendarState {
 
 	setView(view: CalendarView): void {
 		this.currentView = view;
+		this.persistView(view);
 	}
 }
