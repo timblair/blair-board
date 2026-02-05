@@ -15,6 +15,8 @@ import {
 } from '$lib/utils/date-helpers';
 
 const VIEW_STORAGE_KEY = 'blair-board-current-view';
+const HIDDEN_CALENDARS_KEY = 'blair-board-hidden-calendars';
+const AGENDA_VISIBLE_KEY = 'blair-board-agenda-visible';
 
 export class CalendarState {
 	events = $state<CalendarEvent[]>([]);
@@ -23,6 +25,8 @@ export class CalendarState {
 	loading = $state(false);
 	error = $state<string | null>(null);
 	config = $state<ClientConfig | null>(null);
+	hiddenCalendarIds = $state<Set<string>>(this.loadHiddenCalendars());
+	agendaVisible = $state<boolean>(this.loadAgendaVisible());
 
 	private loadPersistedView(): CalendarView {
 		if (typeof window === 'undefined') return 'week';
@@ -46,8 +50,56 @@ export class CalendarState {
 		}
 	}
 
+	private loadHiddenCalendars(): Set<string> {
+		if (typeof window === 'undefined') return new Set();
+		try {
+			const stored = localStorage.getItem(HIDDEN_CALENDARS_KEY);
+			if (stored) {
+				return new Set(JSON.parse(stored));
+			}
+		} catch (e) {
+			console.warn('Failed to load hidden calendars:', e);
+		}
+		return new Set();
+	}
+
+	private persistHiddenCalendars(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(HIDDEN_CALENDARS_KEY, JSON.stringify([...this.hiddenCalendarIds]));
+		} catch (e) {
+			console.warn('Failed to persist hidden calendars:', e);
+		}
+	}
+
+	private loadAgendaVisible(): boolean {
+		if (typeof window === 'undefined') return true;
+		try {
+			const stored = localStorage.getItem(AGENDA_VISIBLE_KEY);
+			if (stored !== null) {
+				return stored === 'true';
+			}
+		} catch (e) {
+			console.warn('Failed to load agenda visibility:', e);
+		}
+		return true;
+	}
+
+	private persistAgendaVisible(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(AGENDA_VISIBLE_KEY, String(this.agendaVisible));
+		} catch (e) {
+			console.warn('Failed to persist agenda visibility:', e);
+		}
+	}
+
 	get weekStartsOn(): WeekStartsOn {
 		return (this.config?.display.weekStartsOn ?? 1) as WeekStartsOn;
+	}
+
+	get visibleEvents(): CalendarEvent[] {
+		return this.events.filter((e) => !this.hiddenCalendarIds.has(e.calendarId));
 	}
 
 	get agendaEvents(): CalendarEvent[] {
@@ -55,7 +107,7 @@ export class CalendarState {
 		const today = startOfDay(new Date());
 		const cutoff = endOfDay(addDays(today, days - 1));
 
-		return this.events.filter((e) => {
+		return this.visibleEvents.filter((e) => {
 			const start = parseISO(e.start);
 			const end = parseISO(e.end);
 			return end >= today && start <= cutoff;
@@ -65,7 +117,7 @@ export class CalendarState {
 	get calendarViewEvents(): CalendarEvent[] {
 		const range = getViewRange(this.currentView, this.referenceDate, this.weekStartsOn);
 
-		return this.events.filter((e) => {
+		return this.visibleEvents.filter((e) => {
 			const start = parseISO(e.start);
 			const end = parseISO(e.end);
 			return end >= range.start && start <= range.end;
@@ -139,5 +191,25 @@ export class CalendarState {
 	setView(view: CalendarView): void {
 		this.currentView = view;
 		this.persistView(view);
+	}
+
+	toggleCalendarVisibility(calendarId: string): void {
+		const newSet = new Set(this.hiddenCalendarIds);
+		if (newSet.has(calendarId)) {
+			newSet.delete(calendarId);
+		} else {
+			newSet.add(calendarId);
+		}
+		this.hiddenCalendarIds = newSet;
+		this.persistHiddenCalendars();
+	}
+
+	isCalendarVisible(calendarId: string): boolean {
+		return !this.hiddenCalendarIds.has(calendarId);
+	}
+
+	toggleAgenda(): void {
+		this.agendaVisible = !this.agendaVisible;
+		this.persistAgendaVisible();
 	}
 }
