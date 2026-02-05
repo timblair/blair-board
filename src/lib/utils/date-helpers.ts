@@ -79,9 +79,12 @@ export function formatTimeRange(
 	const endDate = typeof end === 'string' ? parseISO(end) : end;
 
 	if (timeFormat === '12h') {
-		const startFormatted = format(startDate, 'h:mm');
+		// Format times, omitting :00 minutes for on-the-hour times
+		const startMinutes = startDate.getMinutes();
+		const endMinutes = endDate.getMinutes();
+		const startFormatted = format(startDate, startMinutes === 0 ? 'h' : 'h:mm');
+		const endFormatted = format(endDate, endMinutes === 0 ? 'h' : 'h:mm');
 		const startPeriod = format(startDate, 'a').toLowerCase();
-		const endFormatted = format(endDate, 'h:mm');
 		const endPeriod = format(endDate, 'a').toLowerCase();
 
 		// If same period (both am or both pm), only show period once at the end
@@ -91,7 +94,12 @@ export function formatTimeRange(
 		// Different periods, show both
 		return `${startFormatted}${startPeriod} – ${endFormatted}${endPeriod}`;
 	} else {
-		return `${format(startDate, 'HH:mm')} – ${format(endDate, 'HH:mm')}`;
+		// For 24h format, also omit :00 for on-the-hour times
+		const startMinutes = startDate.getMinutes();
+		const endMinutes = endDate.getMinutes();
+		const startFormatted = format(startDate, startMinutes === 0 ? 'HH' : 'HH:mm');
+		const endFormatted = format(endDate, endMinutes === 0 ? 'HH' : 'HH:mm');
+		return `${startFormatted} – ${endFormatted}`;
 	}
 }
 
