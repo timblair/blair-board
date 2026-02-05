@@ -16,7 +16,7 @@ import {
 export { isToday, isTomorrow, isSameDay, startOfDay, endOfDay, addDays, parseISO };
 
 export type WeekStartsOn = 0 | 1;
-export type CalendarView = 'week' | '4week' | 'month';
+export type CalendarView = 'week' | 'weeknext' | '4week' | 'month';
 
 export function getWeekRange(
 	date: Date,
@@ -52,6 +52,15 @@ export function getViewRange(
 	weekStartsOn: WeekStartsOn
 ): { start: Date; end: Date } {
 	if (view === 'week') return getWeekRange(date, weekStartsOn);
+	if (view === 'weeknext') {
+		// Return range covering current week + next week
+		const currentWeek = getWeekRange(date, weekStartsOn);
+		const nextWeekStart = addDays(currentWeek.start, 7);
+		return {
+			start: currentWeek.start,
+			end: endOfWeek(nextWeekStart, { weekStartsOn })
+		};
+	}
 	if (view === '4week') return get4WeekRange(date, weekStartsOn);
 	return getMonthRange(date);
 }
@@ -69,6 +78,19 @@ export function formatWeekLabel(date: Date, weekStartsOn: WeekStartsOn): string 
 			? format(end, 'd MMM yyyy')
 			: format(end, 'd MMM yyyy');
 	return `${startStr} – ${endStr}`;
+}
+
+export function formatWeekNextLabel(date: Date, weekStartsOn: WeekStartsOn): string {
+	const { start } = getWeekRange(date, weekStartsOn);
+	const nextWeekStart = addDays(start, 7);
+	const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn });
+
+	const startStr = format(start, 'd MMM');
+	const nextEndStr =
+		nextWeekStart.getMonth() === nextWeekEnd.getMonth()
+			? format(nextWeekEnd, 'd MMM yyyy')
+			: format(nextWeekEnd, 'd MMM yyyy');
+	return `${startStr} – ${nextEndStr}`;
 }
 
 export function format4WeekLabel(date: Date, weekStartsOn: WeekStartsOn): string {

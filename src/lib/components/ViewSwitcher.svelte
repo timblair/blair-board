@@ -10,6 +10,7 @@
 
 	const views: { value: CalendarView; label: string }[] = [
 		{ value: 'week', label: 'Week' },
+		{ value: 'weeknext', label: 'Week+Next' },
 		{ value: '4week', label: '4 Week' },
 		{ value: 'month', label: 'Month' }
 	];

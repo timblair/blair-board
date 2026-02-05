@@ -3,6 +3,7 @@
 	import { CalendarState } from '$lib/stores/calendar.svelte';
 	import { get4WeekGridDays } from '$lib/utils/date-helpers';
 	import CalendarWeek from '$lib/components/CalendarWeek.svelte';
+	import CalendarWeekNext from '$lib/components/CalendarWeekNext.svelte';
 	import CalendarMonth from '$lib/components/CalendarMonth.svelte';
 	import AgendaPanel from '$lib/components/AgendaPanel.svelte';
 	import CalendarLegend from '$lib/components/CalendarLegend.svelte';
@@ -81,6 +82,15 @@
 		<main class="flex-1 p-4 min-w-0 overflow-hidden">
 			{#if cal.currentView === 'week'}
 				<CalendarWeek
+					events={cal.calendarViewEvents}
+					referenceDate={cal.referenceDate}
+					weekStartsOn={cal.weekStartsOn}
+					timeFormat={cal.config?.display.timeFormat}
+					gridStartHour={cal.config?.display.gridStartHour}
+					gridEndHour={cal.config?.display.gridEndHour}
+				/>
+			{:else if cal.currentView === 'weeknext'}
+				<CalendarWeekNext
 					events={cal.calendarViewEvents}
 					referenceDate={cal.referenceDate}
 					weekStartsOn={cal.weekStartsOn}

@@ -7,6 +7,7 @@ import {
 	parseISO,
 	getViewRange,
 	formatWeekLabel,
+	formatWeekNextLabel,
 	format4WeekLabel,
 	formatMonthLabel,
 	type WeekStartsOn,
@@ -51,6 +52,9 @@ export class CalendarState {
 		if (this.currentView === 'week') {
 			return formatWeekLabel(this.referenceDate, this.weekStartsOn);
 		}
+		if (this.currentView === 'weeknext') {
+			return formatWeekNextLabel(this.referenceDate, this.weekStartsOn);
+		}
 		if (this.currentView === '4week') {
 			return format4WeekLabel(this.referenceDate, this.weekStartsOn);
 		}
@@ -81,7 +85,7 @@ export class CalendarState {
 	}
 
 	navigatePrevious(): void {
-		if (this.currentView === 'week') {
+		if (this.currentView === 'week' || this.currentView === 'weeknext') {
 			this.referenceDate = addDays(this.referenceDate, -7);
 		} else if (this.currentView === '4week') {
 			this.referenceDate = addDays(this.referenceDate, -28);
@@ -93,7 +97,7 @@ export class CalendarState {
 	}
 
 	navigateNext(): void {
-		if (this.currentView === 'week') {
+		if (this.currentView === 'week' || this.currentView === 'weeknext') {
 			this.referenceDate = addDays(this.referenceDate, 7);
 		} else if (this.currentView === '4week') {
 			this.referenceDate = addDays(this.referenceDate, 28);
