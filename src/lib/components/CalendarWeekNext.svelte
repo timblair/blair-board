@@ -9,11 +9,17 @@
 		parseISO,
 		isToday,
 		formatDayHeader,
-		formatTime,
 		formatTimeRange,
 		isEventPast,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
+	import {
+		getEventsForWeek,
+		classifyWeekEvents,
+		calculateSpans,
+		packSpanningEvents,
+		getSpanningRowCount
+	} from '$lib/utils/spanning-events';
 	import CalendarWeek from './CalendarWeek.svelte';
 	import NextWeekDay from './NextWeekDay.svelte';
 
@@ -49,35 +55,11 @@
 	);
 
 	// All events that overlap next week
-	let nextWeekEvents = $derived(
-		events.filter((e) => {
-			const start = parseISO(e.start);
-			const end = parseISO(e.end);
-			return nextWeekDays.some((day) => {
-				const dayStart = startOfDay(day);
-				const dayEnd = endOfDay(day);
-				return start <= dayEnd && end > dayStart;
-			});
-		})
-	);
+	let nextWeekEvents = $derived(getEventsForWeek(events, nextWeekDays));
 
-	// Multi-day or all-day events → rendered as spanning bars
-	let nextWeekMultiDayEvents = $derived(
-		nextWeekEvents.filter((e) => {
-			const start = startOfDay(parseISO(e.start));
-			const end = startOfDay(parseISO(e.end));
-			return end > start || e.allDay;
-		})
-	);
-
-	// Timed single-day events → rendered in day cells
-	let nextWeekSingleDayEvents = $derived(
-		nextWeekEvents.filter((e) => {
-			const start = startOfDay(parseISO(e.start));
-			const end = startOfDay(parseISO(e.end));
-			return end <= start && !e.allDay;
-		})
-	);
+	// Classify into spanning and single-day events
+	let classifiedEvents = $derived(classifyWeekEvents(nextWeekEvents));
+	let nextWeekSingleDayEvents = $derived(classifiedEvents.singleDay);
 
 	function singleDayEventsForDay(day: Date): CalendarEvent[] {
 		return nextWeekSingleDayEvents.filter((e) => {
@@ -89,74 +71,11 @@
 		});
 	}
 
-	// Calculate column span for each multi-day/all-day event
-	interface SpanningEvent {
-		event: CalendarEvent;
-		startCol: number;
-		span: number;
-	}
+	// Calculate spans and pack into rows
+	let spanningEvents = $derived(calculateSpans(classifiedEvents.spanning, nextWeekDays));
+	let packedSpanningEvents = $derived(packSpanningEvents(spanningEvents));
 
-	let spanningEvents = $derived.by(() => {
-		return nextWeekMultiDayEvents.map((event) => {
-			const eventStart = startOfDay(parseISO(event.start));
-			const eventEnd = startOfDay(parseISO(event.end));
-
-			let startCol = nextWeekDays.findIndex(
-				(day) => startOfDay(day).getTime() === eventStart.getTime()
-			);
-			if (startCol === -1) startCol = 0;
-
-			let endCol = nextWeekDays.findIndex(
-				(day) => startOfDay(day).getTime() === eventEnd.getTime()
-			);
-			if (endCol === -1) endCol = nextWeekDays.length;
-
-			const span = endCol - startCol;
-			return { event, startCol, span: Math.max(1, span) } as SpanningEvent;
-		});
-	});
-
-	// Pack spanning events into rows: events that don't overlap in columns share a row
-	interface PackedSpanningEvent extends SpanningEvent {
-		row: number;
-	}
-
-	let packedSpanningEvents = $derived.by(() => {
-		const rows: PackedSpanningEvent[][] = [];
-
-		for (const se of spanningEvents) {
-			let rowIndex = 0;
-			while (rowIndex < rows.length) {
-				const hasOverlap = rows[rowIndex].some(
-					(existing) =>
-						se.startCol < existing.startCol + existing.span &&
-						existing.startCol < se.startCol + se.span
-				);
-				if (!hasOverlap) break;
-				rowIndex++;
-			}
-
-			if (rowIndex >= rows.length) rows.push([]);
-
-			const packed: PackedSpanningEvent = { ...se, row: rowIndex };
-			rows[rowIndex].push(packed);
-		}
-
-		return rows.flat();
-	});
-
-	// Number of spanning event rows covering a specific day column
-	function spanningRowsForDay(dayIndex: number): number {
-		let maxRow = -1;
-		for (const se of packedSpanningEvents) {
-			if (dayIndex >= se.startCol && dayIndex < se.startCol + se.span) {
-				maxRow = Math.max(maxRow, se.row);
-			}
-		}
-		return maxRow + 1;
-	}
-
-	const SPANNING_ROW_HEIGHT = 1.75; // rem per spanning event row
+	const SPANNING_ROW_HEIGHT = 1.75; // rem per spanning event row (slightly larger for week+next view)
 </script>
 
 <div class="flex flex-col h-full gap-4">
@@ -223,7 +142,7 @@
 				<div class="grid grid-cols-7 h-full">
 					{#each nextWeekDays as day, dayIndex (day.toISOString())}
 						{@const dayEvents = singleDayEventsForDay(day)}
-						{@const spanRows = spanningRowsForDay(dayIndex)}
+						{@const spanRows = getSpanningRowCount(packedSpanningEvents, dayIndex)}
 						<NextWeekDay
 							{day}
 							events={dayEvents}

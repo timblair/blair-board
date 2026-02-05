@@ -2,11 +2,23 @@
 	import type { CalendarEvent } from '$lib/types/events';
 	import {
 		getMonthGridDays,
-		isSameDay,
+		startOfDay,
+		endOfDay,
 		parseISO,
+		formatTimeRange,
+		isEventPast,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
-	import { format, isSameMonth } from 'date-fns';
+	import {
+		getEventsForWeek,
+		classifyWeekEvents,
+		calculateSpans,
+		packSpanningEvents,
+		getSpanningRowCount,
+		SPANNING_ROW_HEIGHT,
+		type PackedSpanningEvent
+	} from '$lib/utils/spanning-events';
+	import { isSameMonth } from 'date-fns';
 	import MonthDay from './MonthDay.svelte';
 
 	interface Props {
@@ -21,6 +33,15 @@
 
 	let gridDays = $derived(days ?? getMonthGridDays(referenceDate, weekStartsOn));
 
+	// Split days into weeks (chunks of 7)
+	let weekRows = $derived.by(() => {
+		const rows: Date[][] = [];
+		for (let i = 0; i < gridDays.length; i += 7) {
+			rows.push(gridDays.slice(i, i + 7));
+		}
+		return rows;
+	});
+
 	let dayHeaders = $derived(
 		(() => {
 			const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -29,46 +50,100 @@
 		})()
 	);
 
-	function eventsForDay(day: Date): CalendarEvent[] {
-		return events
+	// For each week, calculate packed spanning events
+	interface WeekData {
+		days: Date[];
+		packedEvents: PackedSpanningEvent[];
+		singleDayEvents: CalendarEvent[];
+	}
+
+	let weekData = $derived.by(() => {
+		return weekRows.map((weekDays) => {
+			const weekEvents = getEventsForWeek(events, weekDays);
+			const { spanning, singleDay } = classifyWeekEvents(weekEvents);
+			const spans = calculateSpans(spanning, weekDays);
+			const packed = packSpanningEvents(spans);
+
+			return {
+				days: weekDays,
+				packedEvents: packed,
+				singleDayEvents: singleDay
+			} as WeekData;
+		});
+	});
+
+	// Get single-day events for a specific day within a week
+	function singleDayEventsForDay(singleDayEvents: CalendarEvent[], day: Date): CalendarEvent[] {
+		return singleDayEvents
 			.filter((e) => {
 				const start = parseISO(e.start);
 				const end = parseISO(e.end);
-				// Event overlaps this day
-				if (e.allDay) {
-					const dayEnd = new Date(day);
-					dayEnd.setDate(dayEnd.getDate() + 1);
-					return start < dayEnd && end > day;
-				}
-				return isSameDay(start, day);
+				const dayStart = startOfDay(day);
+				const dayEnd = endOfDay(day);
+				return start <= dayEnd && end > dayStart;
 			})
-			.sort((a, b) => {
-				if (a.allDay && !b.allDay) return -1;
-				if (!a.allDay && b.allDay) return 1;
-				return a.start.localeCompare(b.start);
-			});
+			.sort((a, b) => a.start.localeCompare(b.start));
 	}
 </script>
 
 <div class="flex flex-col h-full bg-surface rounded-lg border border-border overflow-hidden">
 	<!-- Day-of-week headers -->
-	<div class="grid grid-cols-7 border-b border-border">
+	<div class="grid grid-cols-7 border-b border-border shrink-0">
 		{#each dayHeaders as header}
-			<div class="text-xs font-semibold text-text-secondary text-center py-2 border-r border-border last:border-r-0">
+			<div
+				class="text-xs font-semibold text-text-secondary text-center py-2 border-r border-border last:border-r-0"
+			>
 				{header}
 			</div>
 		{/each}
 	</div>
 
-	<!-- Day grid -->
-	<div class="grid grid-cols-7 flex-1 auto-rows-fr">
-		{#each gridDays as day (day.toISOString())}
-			<MonthDay
-				date={day}
-				events={eventsForDay(day)}
-				isCurrentMonth={isSameMonth(day, referenceDate)}
-				{timeFormat}
-			/>
+	<!-- Week rows -->
+	<div class="flex-1 flex flex-col min-h-0">
+		{#each weekData as week, weekIndex (weekIndex)}
+			<div class="flex-1 relative min-h-0 border-b border-border last:border-b-0">
+				<!-- Spanning event bars (absolutely positioned) -->
+				{#each week.packedEvents as { event, startCol, span, row } (event.id)}
+					<div
+						class="absolute pointer-events-auto z-10"
+						style="
+							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
+							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
+							top: calc(1.875rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
+						"
+					>
+						<div
+							class="text-xs px-1 py-0.5 mx-0.5 rounded truncate cursor-default"
+							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(
+								event.end
+							)
+								? 0.4
+								: 1}"
+							title="{event.allDay
+								? 'All day'
+								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
+						>
+							<span class="font-medium">{event.title}</span>
+						</div>
+					</div>
+				{/each}
+
+				<!-- Day cells -->
+				<div class="grid grid-cols-7 h-full">
+					{#each week.days as day, dayIndex (day.toISOString())}
+						{@const spanRows = getSpanningRowCount(week.packedEvents, dayIndex)}
+						{@const dayEvents = singleDayEventsForDay(week.singleDayEvents, day)}
+						<MonthDay
+							date={day}
+							events={dayEvents}
+							isCurrentMonth={isSameMonth(day, referenceDate)}
+							{timeFormat}
+							{spanRows}
+							spanningRowHeight={SPANNING_ROW_HEIGHT}
+						/>
+					{/each}
+				</div>
+			</div>
 		{/each}
 	</div>
 </div>

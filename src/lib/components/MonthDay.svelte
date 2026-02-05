@@ -8,9 +8,18 @@
 		events: CalendarEvent[];
 		isCurrentMonth: boolean;
 		timeFormat?: '12h' | '24h';
+		spanRows?: number;
+		spanningRowHeight?: number;
 	}
 
-	let { date, events, isCurrentMonth, timeFormat = '24h' }: Props = $props();
+	let {
+		date,
+		events,
+		isCurrentMonth,
+		timeFormat = '24h',
+		spanRows = 0,
+		spanningRowHeight = 1.5
+	}: Props = $props();
 
 	let today = $derived(isToday(date));
 	let dayNumber = $derived(format(date, 'd'));
@@ -26,9 +35,10 @@
 
 		const updateVisibility = () => {
 			const containerHeight = containerEl!.clientHeight;
-			const headerHeight = 28; // Day number header approximate height
+			const headerHeight = 30; // Day number header: h-6 (24px) + mb-0.5 (2px) + padding (4px)
 			const moreIndicatorHeight = 20; // "+X more" indicator height
-			const available = containerHeight - headerHeight;
+			const spanningHeight = spanRows * spanningRowHeight * 16; // Convert rem to px (assuming 16px base)
+			const available = containerHeight - headerHeight - spanningHeight;
 
 			// Measure actual event chip height from first event or estimate
 			const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
@@ -72,17 +82,24 @@
 		? 'bg-surface'
 		: 'bg-bg'}"
 >
-	<div
-		class="text-xs font-medium mb-1 {today
-			? 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center'
-			: isCurrentMonth
-				? 'text-text px-1'
-				: 'text-text-tertiary px-1'}"
-	>
-		{dayNumber}
+	<!-- Day number header - fixed height for consistent alignment -->
+	<div class="h-6 mb-0.5">
+		<div
+			class="text-xs font-medium {today
+				? 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center'
+				: isCurrentMonth
+					? 'text-text px-1 leading-6'
+					: 'text-text-tertiary px-1 leading-6'}"
+		>
+			{dayNumber}
+		</div>
 	</div>
 
-	<div bind:this={eventsContainerEl} class="space-y-0.5">
+	<div
+		bind:this={eventsContainerEl}
+		class="space-y-0.5"
+		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.125rem)"
+	>
 		{#each visibleEvents as event (event.id)}
 			<div
 				data-event-chip
