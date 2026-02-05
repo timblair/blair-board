@@ -60,7 +60,7 @@
 		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border">
 			<div class="text-xs text-text-tertiary px-1 py-1 text-right">All day</div>
 			{#each days as day (day.toISOString())}
-				<div class="border-l border-border px-1 py-1 space-y-0.5">
+				<div class="border-l border-border px-1 py-1 space-y-0.5 min-w-0 overflow-hidden">
 					{#each allDayForDay(day) as event (event.id)}
 						<div
 							class="text-xs px-1.5 py-0.5 rounded truncate text-white font-medium"
