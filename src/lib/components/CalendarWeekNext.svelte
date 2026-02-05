@@ -4,6 +4,8 @@
 		getWeekDays,
 		addDays,
 		isSameDay,
+		startOfDay,
+		endOfDay,
 		parseISO,
 		isToday,
 		formatDayHeader,
@@ -43,11 +45,15 @@
 		})
 	);
 
-	// Get events for next week
+	// Get events for next week (including multi-day events)
 	function eventsForDay(day: Date): CalendarEvent[] {
 		return events.filter((e) => {
-			const eventDate = parseISO(e.start);
-			return isSameDay(eventDate, day);
+			const start = parseISO(e.start);
+			const end = parseISO(e.end);
+			const dayStart = startOfDay(day);
+			const dayEnd = endOfDay(day);
+			// Event spans this day if: event start <= day end AND event end > day start
+			return start <= dayEnd && end > dayStart;
 		});
 	}
 </script>
