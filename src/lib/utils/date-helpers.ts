@@ -70,6 +70,39 @@ export function formatTime(date: Date | string, timeFormat: '12h' | '24h'): stri
 	return format(d, timeFormat === '24h' ? 'HH:mm' : 'h:mm a');
 }
 
+export function formatTimeRange(
+	start: Date | string,
+	end: Date | string,
+	timeFormat: '12h' | '24h'
+): string {
+	const startDate = typeof start === 'string' ? parseISO(start) : start;
+	const endDate = typeof end === 'string' ? parseISO(end) : end;
+
+	if (timeFormat === '12h') {
+		// Format times, omitting :00 minutes for on-the-hour times
+		const startMinutes = startDate.getMinutes();
+		const endMinutes = endDate.getMinutes();
+		const startFormatted = format(startDate, startMinutes === 0 ? 'h' : 'h:mm');
+		const endFormatted = format(endDate, endMinutes === 0 ? 'h' : 'h:mm');
+		const startPeriod = format(startDate, 'a').toLowerCase();
+		const endPeriod = format(endDate, 'a').toLowerCase();
+
+		// If same period (both am or both pm), only show period once at the end
+		if (startPeriod === endPeriod) {
+			return `${startFormatted} – ${endFormatted}${endPeriod}`;
+		}
+		// Different periods, show both
+		return `${startFormatted}${startPeriod} – ${endFormatted}${endPeriod}`;
+	} else {
+		// For 24h format, also omit :00 for on-the-hour times
+		const startMinutes = startDate.getMinutes();
+		const endMinutes = endDate.getMinutes();
+		const startFormatted = format(startDate, startMinutes === 0 ? 'HH' : 'HH:mm');
+		const endFormatted = format(endDate, endMinutes === 0 ? 'HH' : 'HH:mm');
+		return `${startFormatted} – ${endFormatted}`;
+	}
+}
+
 export function formatWeekLabel(date: Date, weekStartsOn: WeekStartsOn): string {
 	const { start, end } = getWeekRange(date, weekStartsOn);
 	const startStr = format(start, 'd MMM');
@@ -140,6 +173,12 @@ export function getMonthGridDays(date: Date, weekStartsOn: WeekStartsOn): Date[]
 		current = addDays(current, 1);
 	}
 	return days;
+}
+
+/** Check if an event has ended (is in the past) */
+export function isEventPast(eventEnd: Date | string): boolean {
+	const end = typeof eventEnd === 'string' ? parseISO(eventEnd) : eventEnd;
+	return end < new Date();
 }
 
 /** Minutes from midnight for positioning events on the time grid */

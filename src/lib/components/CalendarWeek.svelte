@@ -6,6 +6,7 @@
 		parseISO,
 		isToday,
 		formatDayHeader,
+		isEventPast,
 		GRID_START_HOUR,
 		GRID_END_HOUR,
 		type WeekStartsOn
@@ -75,7 +76,7 @@
 					{#each allDayForDay(day) as event (event.id)}
 						<div
 							class="text-xs px-1.5 py-0.5 rounded truncate text-white font-medium"
-							style="background-color: {event.colour}"
+							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
 						>
 							{event.title}
 						</div>

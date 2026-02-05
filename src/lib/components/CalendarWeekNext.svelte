@@ -10,6 +10,8 @@
 		isToday,
 		formatDayHeader,
 		formatTime,
+		formatTimeRange,
+		isEventPast,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
 	import CalendarWeek from './CalendarWeek.svelte';
@@ -206,10 +208,10 @@
 					>
 						<div
 							class="text-xs px-1 py-1 mx-1 rounded truncate cursor-default flex items-center"
-							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}"
+							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
 							title="{event.allDay
 								? 'All day'
-								: formatTime(event.start, timeFormat)}: {event.title}"
+								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 						>
 							<span class="font-medium">{event.title}</span>
 						</div>
@@ -235,17 +237,17 @@
 									{#each dayEvents as event (event.id)}
 										<div
 											class="text-xs rounded cursor-default"
-											style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; padding: 4px 4px;"
+											style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; padding: 4px 4px; opacity: {isEventPast(event.end) ? 0.4 : 1}"
 											title="{event.allDay
 												? 'All day'
-												: formatTime(event.start, timeFormat)}: {event.title}"
+												: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 										>
+											<div class="font-medium truncate leading-tight">{event.title}</div>
 											{#if !event.allDay}
-												<div class="text-text-secondary tabular-nums leading-tight mb-0.5">
-													{formatTime(event.start, timeFormat)}
+												<div class="text-text-secondary tabular-nums leading-tight mt-0.5">
+													{formatTimeRange(event.start, event.end, timeFormat)}
 												</div>
 											{/if}
-											<div class="font-medium truncate leading-tight">{event.title}</div>
 										</div>
 									{/each}
 								</div>
