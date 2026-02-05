@@ -70,6 +70,20 @@ export function formatTime(date: Date | string, timeFormat: '12h' | '24h'): stri
 	return format(d, timeFormat === '24h' ? 'HH:mm' : 'h:mm a');
 }
 
+export function formatTimeCompact(date: Date | string, timeFormat: '12h' | '24h'): string {
+	const d = typeof date === 'string' ? parseISO(date) : date;
+	const minutes = d.getMinutes();
+
+	if (timeFormat === '12h') {
+		const timeStr = format(d, minutes === 0 ? 'h' : 'h:mm');
+		const period = format(d, 'a').toLowerCase();
+		return `${timeStr}${period}`;
+	} else {
+		// Always show minutes for 24h format
+		return format(d, 'HH:mm');
+	}
+}
+
 export function formatTimeRange(
 	start: Date | string,
 	end: Date | string,
@@ -94,12 +108,8 @@ export function formatTimeRange(
 		// Different periods, show both
 		return `${startFormatted}${startPeriod} – ${endFormatted}${endPeriod}`;
 	} else {
-		// For 24h format, also omit :00 for on-the-hour times
-		const startMinutes = startDate.getMinutes();
-		const endMinutes = endDate.getMinutes();
-		const startFormatted = format(startDate, startMinutes === 0 ? 'HH' : 'HH:mm');
-		const endFormatted = format(endDate, endMinutes === 0 ? 'HH' : 'HH:mm');
-		return `${startFormatted} – ${endFormatted}`;
+		// For 24h format, always show minutes
+		return `${format(startDate, 'HH:mm')} – ${format(endDate, 'HH:mm')}`;
 	}
 }
 
