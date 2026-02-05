@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
 	import {
-		formatTime,
+		formatTimeCompact,
 		formatTimeRange,
 		parseISO,
 		minutesFromMidnight,
@@ -98,6 +98,25 @@
 
 	let eventLayouts = $derived(layoutEvents(events));
 
+	// Track container height to calculate pixel heights
+	let containerEl: HTMLDivElement | undefined = $state(undefined);
+	let containerHeight = $state(0);
+
+	// Update container height on mount and resize
+	$effect(() => {
+		if (!containerEl) return;
+
+		const updateHeight = () => {
+			containerHeight = containerEl!.clientHeight;
+		};
+
+		updateHeight();
+		const resizeObserver = new ResizeObserver(updateHeight);
+		resizeObserver.observe(containerEl!);
+
+		return () => resizeObserver.disconnect();
+	});
+
 	function eventStyle(layout: EventLayout): string {
 		const { event, column, totalColumns } = layout;
 		const startMin = Math.max(minutesFromMidnight(event.start) - gridStartHour * 60, 0);
@@ -116,19 +135,45 @@
 		const boxShadow = `0 0 0 2px var(--color-surface, #ffffff)`;
 		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
 	}
+
+	// Check if event is too short to display two lines comfortably
+	function isCompactEvent(event: CalendarEvent): boolean {
+		if (containerHeight === 0) return false;
+
+		const startMin = Math.max(minutesFromMidnight(event.start) - gridStartHour * 60, 0);
+		const endMin = Math.min(minutesFromMidnight(event.end) - gridStartHour * 60, gridTotalMinutes);
+		const duration = Math.max(endMin - startMin, 15);
+
+		const heightPercent = (duration / gridTotalMinutes) * 100;
+		const pixelHeight = (heightPercent / 100) * containerHeight;
+
+		// Two lines of text + padding needs ~32px minimum
+		return pixelHeight < 32;
+	}
 </script>
 
-<div class="relative h-full">
+<div bind:this={containerEl} class="relative h-full">
 	{#each eventLayouts as layout (layout.event.id)}
 		<div
 			class="absolute px-1.5 py-0.5 rounded text-xs overflow-hidden cursor-default hover:shadow-sm transition-shadow"
 			style={eventStyle(layout)}
 			title="{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}: {layout.event.title}"
 		>
-			<div class="font-medium truncate">{layout.event.title}</div>
-			<div class="text-text-secondary truncate tabular-nums">
-				{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
-			</div>
+			{#if isCompactEvent(layout.event)}
+				<!-- Single-line format for short events: title + start time only -->
+				<div class="font-medium truncate">
+					{layout.event.title}
+					<span class="text-text-secondary tabular-nums ml-1"
+						>{formatTimeCompact(layout.event.start, timeFormat)}</span
+					>
+				</div>
+			{:else}
+				<!-- Two-line format for longer events: title on line 1, time range on line 2 -->
+				<div class="font-medium truncate">{layout.event.title}</div>
+				<div class="text-text-secondary truncate tabular-nums">
+					{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
+				</div>
+			{/if}
 		</div>
 	{/each}
 </div>
