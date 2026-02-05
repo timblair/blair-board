@@ -4,6 +4,8 @@
 		getWeekDays,
 		isSameDay,
 		parseISO,
+		isToday,
+		formatDayHeader,
 		GRID_START_HOUR,
 		GRID_END_HOUR,
 		type WeekStartsOn
@@ -61,8 +63,6 @@
 		})
 	);
 
-	// Calculate grid height: 60px per hour
-	let gridHeight = $derived((gridEndHour - gridStartHour) * 60);
 </script>
 
 <div class="flex flex-col h-full bg-surface rounded-lg border border-border overflow-hidden">
@@ -85,17 +85,28 @@
 		</div>
 	{/if}
 
+	<!-- Day headers -->
+	<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border shrink-0">
+		<div class=""></div>
+		{#each days as day (day.toISOString())}
+			<div
+				class="text-center py-2 text-sm font-medium border-l border-border {isToday(day)
+					? 'text-blue-600 bg-today-bg'
+					: 'text-text-secondary'}"
+			>
+				{formatDayHeader(day)}
+			</div>
+		{/each}
+	</div>
+
 	<!-- Time grid -->
-	<div class="flex-1 overflow-y-auto min-h-0">
-		<div
-			class="grid grid-cols-[3.5rem_repeat(7,1fr)] relative"
-			style="height: {gridHeight}px; min-height: {gridHeight}px;"
-		>
+	<div class="flex-1 min-h-0">
+		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] relative h-full">
 			<!-- Time axis -->
 			<div class="relative">
 				{#each timeLabels as label, i}
 					<div
-						class="absolute right-2 text-xs text-text-tertiary tabular-nums -translate-y-1/2"
+						class="absolute right-2 text-xs text-text-tertiary tabular-nums"
 						style="top: {(i / timeLabels.length) * 100}%"
 					>
 						{label}
@@ -115,7 +126,6 @@
 					{/each}
 
 					<DayColumn
-						date={day}
 						events={eventsForDay(day)}
 						{timeFormat}
 						{gridStartHour}

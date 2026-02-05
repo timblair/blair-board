@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
 	import {
-		formatDayHeader,
 		formatTime,
-		isToday,
 		parseISO,
 		minutesFromMidnight,
 		GRID_START_HOUR,
@@ -11,7 +9,6 @@
 	} from '$lib/utils/date-helpers';
 
 	interface Props {
-		date: Date;
 		events: CalendarEvent[]; // only timed events for this day
 		timeFormat?: '12h' | '24h';
 		gridStartHour?: number;
@@ -19,18 +16,88 @@
 	}
 
 	let {
-		date,
 		events,
 		timeFormat = '24h',
 		gridStartHour = GRID_START_HOUR,
 		gridEndHour = GRID_END_HOUR
 	}: Props = $props();
 
-	let today = $derived(isToday(date));
-	let headerLabel = $derived(formatDayHeader(date));
 	let gridTotalMinutes = $derived((gridEndHour - gridStartHour) * 60);
 
-	function eventStyle(event: CalendarEvent): string {
+	// Detect if two events overlap in time
+	function eventsOverlap(a: CalendarEvent, b: CalendarEvent): boolean {
+		const aStart = parseISO(a.start);
+		const aEnd = parseISO(a.end);
+		const bStart = parseISO(b.start);
+		const bEnd = parseISO(b.end);
+		return aStart < bEnd && bStart < aEnd;
+	}
+
+	interface EventLayout {
+		event: CalendarEvent;
+		column: number;
+		totalColumns: number;
+	}
+
+	// Calculate column layout for overlapping events
+	function layoutEvents(events: CalendarEvent[]): EventLayout[] {
+		if (events.length === 0) return [];
+
+		// Sort by start time, then by duration (longer first)
+		const sorted = [...events].sort((a, b) => {
+			const aStart = parseISO(a.start).getTime();
+			const bStart = parseISO(b.start).getTime();
+			if (aStart !== bStart) return aStart - bStart;
+
+			const aDuration = parseISO(a.end).getTime() - aStart;
+			const bDuration = parseISO(b.end).getTime() - bStart;
+			return bDuration - aDuration; // longer first
+		});
+
+		const layout: EventLayout[] = [];
+		const columns: CalendarEvent[][] = [];
+
+		for (const event of sorted) {
+			// Find the first column where this event doesn't overlap with any existing event
+			let columnIndex = 0;
+			while (columnIndex < columns.length) {
+				const column = columns[columnIndex];
+				const hasOverlap = column.some((e) => eventsOverlap(e, event));
+				if (!hasOverlap) break;
+				columnIndex++;
+			}
+
+			// Add to this column (create if needed)
+			if (columnIndex >= columns.length) {
+				columns.push([]);
+			}
+			columns[columnIndex].push(event);
+
+			layout.push({
+				event,
+				column: columnIndex,
+				totalColumns: 0 // will be set later
+			});
+		}
+
+		// Update totalColumns for each group of overlapping events
+		for (let i = 0; i < layout.length; i++) {
+			const item = layout[i];
+			// Find all events that overlap with this one
+			const overlapping = layout.filter(
+				(other) => eventsOverlap(item.event, other.event) || item.event.id === other.event.id
+			);
+			const maxColumn = Math.max(...overlapping.map((o) => o.column));
+			item.totalColumns = maxColumn + 1;
+		}
+
+		return layout;
+	}
+
+	let eventLayouts = $derived(layoutEvents(events));
+
+	function eventStyle(layout: EventLayout): string {
+		const { event, column, totalColumns } = layout;
 		const startMin = Math.max(minutesFromMidnight(event.start) - gridStartHour * 60, 0);
 		const endMin = Math.min(minutesFromMidnight(event.end) - gridStartHour * 60, gridTotalMinutes);
 		const duration = Math.max(endMin - startMin, 15); // minimum 15min height
@@ -38,33 +105,25 @@
 		const top = (startMin / gridTotalMinutes) * 100;
 		const height = (duration / gridTotalMinutes) * 100;
 
-		return `top: ${top}%; height: ${height}%; border-left-color: ${event.colour};`;
+		// Calculate horizontal positioning for overlapping events
+		const widthPercent = (100 / totalColumns) - 0.5; // small gap between events
+		const leftPercent = (column / totalColumns) * 100 + 0.25; // offset for gap
+
+		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour};`;
 	}
 </script>
 
-<div class="absolute inset-0 flex flex-col">
-	<!-- Day header -->
-	<div
-		class="text-center py-2 text-sm font-medium border-b border-border shrink-0 {today
-			? 'text-blue-600 bg-today-bg'
-			: 'text-text-secondary'}"
-	>
-		{headerLabel}
-	</div>
-
-	<!-- Time grid - events positioned absolutely within this -->
-	<div class="relative flex-1">
-		{#each events as event (event.id)}
-			<div
-				class="absolute left-0.5 right-0.5 px-1.5 py-0.5 rounded text-xs bg-surface border-l-3 overflow-hidden cursor-default hover:shadow-sm transition-shadow"
-				style={eventStyle(event)}
-				title="{formatTime(event.start, timeFormat)} – {formatTime(event.end, timeFormat)}: {event.title}"
-			>
-				<div class="font-medium truncate">{event.title}</div>
-				<div class="text-text-secondary truncate tabular-nums">
-					{formatTime(event.start, timeFormat)}
-				</div>
+<div class="relative h-full">
+	{#each eventLayouts as layout (layout.event.id)}
+		<div
+			class="absolute px-1.5 py-0.5 rounded text-xs overflow-hidden cursor-default hover:shadow-sm transition-shadow"
+			style={eventStyle(layout)}
+			title="{formatTime(layout.event.start, timeFormat)} – {formatTime(layout.event.end, timeFormat)}: {layout.event.title}"
+		>
+			<div class="font-medium truncate">{layout.event.title}</div>
+			<div class="text-text-secondary truncate tabular-nums">
+				{formatTime(layout.event.start, timeFormat)}
 			</div>
-		{/each}
-	</div>
+		</div>
+	{/each}
 </div>
