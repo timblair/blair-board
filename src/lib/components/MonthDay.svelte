@@ -8,19 +8,67 @@
 		events: CalendarEvent[];
 		isCurrentMonth: boolean;
 		timeFormat?: '12h' | '24h';
-		maxVisible?: number;
 	}
 
-	let { date, events, isCurrentMonth, timeFormat = '24h', maxVisible = 3 }: Props = $props();
+	let { date, events, isCurrentMonth, timeFormat = '24h' }: Props = $props();
 
 	let today = $derived(isToday(date));
 	let dayNumber = $derived(format(date, 'd'));
+
+	// Dynamic visibility based on container height
+	let containerEl: HTMLDivElement | undefined = $state(undefined);
+	let eventsContainerEl: HTMLDivElement | undefined = $state(undefined);
+	let maxVisible = $state(0);
+
+	// Calculate how many events can fit
+	$effect(() => {
+		if (!containerEl || !eventsContainerEl) return;
+
+		const updateVisibility = () => {
+			const containerHeight = containerEl!.clientHeight;
+			const headerHeight = 28; // Day number header approximate height
+			const moreIndicatorHeight = 20; // "+X more" indicator height
+			const available = containerHeight - headerHeight;
+
+			// Measure actual event chip height from first event or estimate
+			const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
+			const eventHeight =
+				eventChips.length > 0 ? eventChips[0].getBoundingClientRect().height + 2 : 22; // +2 for spacing
+
+			// Calculate how many events can fit
+			if (events.length === 0) {
+				maxVisible = 0;
+				return;
+			}
+
+			// Try to fit all events first
+			const allEventsHeight = events.length * eventHeight;
+			if (allEventsHeight <= available) {
+				maxVisible = events.length;
+				return;
+			}
+
+			// Calculate max that can fit with "+X more" indicator
+			const maxWithIndicator = Math.floor((available - moreIndicatorHeight) / eventHeight);
+			maxVisible = Math.max(1, maxWithIndicator);
+		};
+
+		updateVisibility();
+
+		// Update on window resize
+		const resizeObserver = new ResizeObserver(updateVisibility);
+		resizeObserver.observe(containerEl!);
+
+		return () => resizeObserver.disconnect();
+	});
+
 	let visibleEvents = $derived(events.slice(0, maxVisible));
 	let overflowCount = $derived(Math.max(0, events.length - maxVisible));
 </script>
 
 <div
-	class="min-h-[5rem] p-1 border-b border-r border-border {isCurrentMonth
+	bind:this={containerEl}
+	class="min-h-[5rem] p-1 border-b border-r border-border overflow-hidden {isCurrentMonth
 		? 'bg-surface'
 		: 'bg-bg'}"
 >
@@ -34,24 +82,24 @@
 		{dayNumber}
 	</div>
 
-	<div class="space-y-0.5">
+	<div bind:this={eventsContainerEl} class="space-y-0.5">
 		{#each visibleEvents as event (event.id)}
 			<div
+				data-event-chip
 				class="text-xs px-1 py-0.5 rounded truncate cursor-default"
 				style="background-color: {event.colour}20; border-left: 2px solid {event.colour}"
 				title={event.title}
 			>
 				{#if !event.allDay}
-					<span class="text-text-secondary tabular-nums">{formatTime(event.start, timeFormat)}</span>
+					<span class="text-text-secondary tabular-nums">{formatTime(event.start, timeFormat)}</span
+					>
 				{/if}
 				<span class="font-medium">{event.title}</span>
 			</div>
 		{/each}
 
 		{#if overflowCount > 0}
-			<div class="text-xs text-text-secondary px-1 font-medium">
-				+{overflowCount} more
-			</div>
+			<div class="text-xs text-text-secondary px-1 font-medium">+{overflowCount} more</div>
 		{/if}
 	</div>
 </div>
