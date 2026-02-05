@@ -1,0 +1,41 @@
+<script lang="ts">
+	interface Props {
+		label: string;
+		onprevious: () => void;
+		onnext: () => void;
+		ontoday: () => void;
+	}
+
+	let { label, onprevious, onnext, ontoday }: Props = $props();
+</script>
+
+<div class="flex items-center gap-2">
+	<button
+		class="p-1.5 rounded-lg text-text-secondary hover:text-text hover:bg-border-light transition-colors"
+		onclick={onprevious}
+		aria-label="Previous"
+	>
+		<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+		</svg>
+	</button>
+
+	<button
+		class="px-3 py-1 rounded-lg text-sm font-medium text-text-secondary hover:text-text hover:bg-border-light transition-colors"
+		onclick={ontoday}
+	>
+		Today
+	</button>
+
+	<button
+		class="p-1.5 rounded-lg text-text-secondary hover:text-text hover:bg-border-light transition-colors"
+		onclick={onnext}
+		aria-label="Next"
+	>
+		<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+		</svg>
+	</button>
+
+	<h2 class="text-lg font-semibold ml-2">{label}</h2>
+</div>

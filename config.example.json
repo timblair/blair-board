@@ -1,0 +1,36 @@
+{
+	"calendars": [
+		{
+			"id": "family",
+			"name": "Family",
+			"url": "https://calendar.google.com/calendar/ical/CALENDAR_ID/basic.ics",
+			"colour": "#4285F4",
+			"enabled": true
+		},
+		{
+			"id": "work",
+			"name": "Work",
+			"url": "https://outlook.office365.com/owa/calendar/CALENDAR_ID/reachcalendar.ics",
+			"colour": "#EA4335",
+			"enabled": true
+		},
+		{
+			"id": "school",
+			"name": "School",
+			"url": "https://example.com/school-calendar.ics",
+			"colour": "#34A853",
+			"enabled": true
+		}
+	],
+	"display": {
+		"defaultView": "week",
+		"agendaDays": 2,
+		"weekStartsOn": 1,
+		"timeFormat": "24h"
+	},
+	"refresh": {
+		"clientPollIntervalMinutes": 5,
+		"serverCacheTTLMinutes": 15
+	},
+	"timezone": "Europe/London"
+}
