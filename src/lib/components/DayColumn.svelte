@@ -136,32 +136,63 @@
 		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
 	}
 
-	// Check if event is too short to display two lines comfortably
-	function isCompactEvent(event: CalendarEvent): boolean {
-		if (containerHeight === 0) return false;
+	// Calculate pixel height for an event
+	function getEventPixelHeight(event: CalendarEvent): number {
+		if (containerHeight === 0) return 32;
 
 		const startMin = Math.max(minutesFromMidnight(event.start) - gridStartHour * 60, 0);
 		const endMin = Math.min(minutesFromMidnight(event.end) - gridStartHour * 60, gridTotalMinutes);
 		const duration = Math.max(endMin - startMin, 15);
 
 		const heightPercent = (duration / gridTotalMinutes) * 100;
-		const pixelHeight = (heightPercent / 100) * containerHeight;
+		return (heightPercent / 100) * containerHeight;
+	}
 
-		// Two lines of text + padding needs ~32px minimum
-		return pixelHeight < 32;
+	// Get compact styling based on event height
+	function getCompactStyling(pixelHeight: number): {
+		singleLine: boolean;
+		paddingStyle: string;
+		textStyle: string;
+	} {
+		if (pixelHeight >= 32) {
+			// Normal: two lines with standard padding
+			return { singleLine: false, paddingStyle: '', textStyle: '' };
+		} else if (pixelHeight >= 20) {
+			// Compact: single line with standard padding
+			return { singleLine: true, paddingStyle: '', textStyle: '' };
+		} else if (pixelHeight >= 14) {
+			// Ultra-compact: single line with reduced padding (minimum 1px)
+			const paddingPx = Math.max(1, Math.floor((pixelHeight - 14) / 6 * 2)); // 1-2px range
+			return {
+				singleLine: true,
+				paddingStyle: `padding-block: ${paddingPx}px;`,
+				textStyle: 'line-height: 0.9;'
+			};
+		} else {
+			// Extreme: single line with 1px padding and vertical squashing
+			const normalTextHeight = 14;
+			const scaleY = Math.max(0.5, pixelHeight / normalTextHeight);
+			return {
+				singleLine: true,
+				paddingStyle: 'padding-block: 1px;',
+				textStyle: `line-height: 1; transform: scaleY(${scaleY.toFixed(3)}); transform-origin: left top;`
+			};
+		}
 	}
 </script>
 
 <div bind:this={containerEl} class="relative h-full">
 	{#each eventLayouts as layout (layout.event.id)}
+		{@const pixelHeight = getEventPixelHeight(layout.event)}
+		{@const styling = getCompactStyling(pixelHeight)}
 		<div
 			class="absolute px-1.5 py-0.5 rounded text-xs overflow-hidden cursor-default hover:shadow-sm transition-shadow"
-			style={eventStyle(layout)}
+			style="{eventStyle(layout)} {styling.paddingStyle}"
 			title="{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}: {layout.event.title}"
 		>
-			{#if isCompactEvent(layout.event)}
+			{#if styling.singleLine}
 				<!-- Single-line format for short events: title + start time only -->
-				<div class="font-medium truncate">
+				<div class="font-medium truncate" style={styling.textStyle}>
 					{layout.event.title}
 					<span class="text-text-secondary tabular-nums ml-1"
 						>{formatTimeCompact(layout.event.start, timeFormat)}</span
