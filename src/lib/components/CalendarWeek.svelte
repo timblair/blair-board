@@ -36,7 +36,7 @@
 		return allDayEvents.filter((e) => {
 			const start = parseISO(e.start);
 			const end = parseISO(e.end);
-			return day >= start && day <= end;
+			return day >= start && day < end;
 		});
 	}
 

@@ -37,7 +37,7 @@
 				if (e.allDay) {
 					const dayEnd = new Date(day);
 					dayEnd.setDate(dayEnd.getDate() + 1);
-					return start < dayEnd && end >= day;
+					return start < dayEnd && end > day;
 				}
 				return isSameDay(start, day);
 			})

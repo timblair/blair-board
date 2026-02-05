@@ -31,8 +31,8 @@
 				// Event overlaps this day
 				return (
 					isSameDay(start, day) ||
-					(e.allDay && start <= day && end >= day) ||
-					(start < day && end > day)
+					(e.allDay && start <= day && end > day) ||
+					(!e.allDay && start < day && end > day)
 				);
 			});
 
