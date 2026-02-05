@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday, formatTime } from '$lib/utils/date-helpers';
+	import { isToday, formatTime, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
 	import { format } from 'date-fns';
 
 	interface Props {
@@ -87,11 +87,11 @@
 			<div
 				data-event-chip
 				class="text-xs px-1 py-0.5 rounded truncate cursor-default"
-				style="background-color: {event.colour}20; border-left: 2px solid {event.colour}"
+				style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
 				title={event.title}
 			>
 				{#if !event.allDay}
-					<span class="text-text-secondary tabular-nums">{formatTime(event.start, timeFormat)}</span
+					<span class="text-text-secondary tabular-nums">{formatTimeRange(event.start, event.end, timeFormat)}</span
 					>
 				{/if}
 				<span class="font-medium">{event.title}</span>

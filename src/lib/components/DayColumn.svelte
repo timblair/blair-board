@@ -2,8 +2,10 @@
 	import type { CalendarEvent } from '$lib/types/events';
 	import {
 		formatTime,
+		formatTimeRange,
 		parseISO,
 		minutesFromMidnight,
+		isEventPast,
 		GRID_START_HOUR,
 		GRID_END_HOUR
 	} from '$lib/utils/date-helpers';
@@ -109,7 +111,10 @@
 		const widthPercent = (100 / totalColumns) - 0.5; // small gap between events
 		const leftPercent = (column / totalColumns) * 100 + 0.25; // offset for gap
 
-		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour};`;
+		const opacity = isEventPast(event.end) ? 0.4 : 1;
+		// Box shadow to cover hour grid lines behind the event
+		const boxShadow = `0 0 0 2px var(--color-surface, #ffffff)`;
+		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
 	}
 </script>
 
@@ -118,11 +123,11 @@
 		<div
 			class="absolute px-1.5 py-0.5 rounded text-xs overflow-hidden cursor-default hover:shadow-sm transition-shadow"
 			style={eventStyle(layout)}
-			title="{formatTime(layout.event.start, timeFormat)} – {formatTime(layout.event.end, timeFormat)}: {layout.event.title}"
+			title="{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}: {layout.event.title}"
 		>
 			<div class="font-medium truncate">{layout.event.title}</div>
 			<div class="text-text-secondary truncate tabular-nums">
-				{formatTime(layout.event.start, timeFormat)}
+				{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
 			</div>
 		</div>
 	{/each}

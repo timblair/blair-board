@@ -70,6 +70,31 @@ export function formatTime(date: Date | string, timeFormat: '12h' | '24h'): stri
 	return format(d, timeFormat === '24h' ? 'HH:mm' : 'h:mm a');
 }
 
+export function formatTimeRange(
+	start: Date | string,
+	end: Date | string,
+	timeFormat: '12h' | '24h'
+): string {
+	const startDate = typeof start === 'string' ? parseISO(start) : start;
+	const endDate = typeof end === 'string' ? parseISO(end) : end;
+
+	if (timeFormat === '12h') {
+		const startFormatted = format(startDate, 'h:mm');
+		const startPeriod = format(startDate, 'a').toLowerCase();
+		const endFormatted = format(endDate, 'h:mm');
+		const endPeriod = format(endDate, 'a').toLowerCase();
+
+		// If same period (both am or both pm), only show period once at the end
+		if (startPeriod === endPeriod) {
+			return `${startFormatted} – ${endFormatted}${endPeriod}`;
+		}
+		// Different periods, show both
+		return `${startFormatted}${startPeriod} – ${endFormatted}${endPeriod}`;
+	} else {
+		return `${format(startDate, 'HH:mm')} – ${format(endDate, 'HH:mm')}`;
+	}
+}
+
 export function formatWeekLabel(date: Date, weekStartsOn: WeekStartsOn): string {
 	const { start, end } = getWeekRange(date, weekStartsOn);
 	const startStr = format(start, 'd MMM');
@@ -140,6 +165,12 @@ export function getMonthGridDays(date: Date, weekStartsOn: WeekStartsOn): Date[]
 		current = addDays(current, 1);
 	}
 	return days;
+}
+
+/** Check if an event has ended (is in the past) */
+export function isEventPast(eventEnd: Date | string): boolean {
+	const end = typeof eventEnd === 'string' ? parseISO(eventEnd) : eventEnd;
+	return end < new Date();
 }
 
 /** Minutes from midnight for positioning events on the time grid */

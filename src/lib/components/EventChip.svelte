@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { formatTime } from '$lib/utils/date-helpers';
+	import { formatTime, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
 
 	interface Props {
 		event: CalendarEvent;
@@ -13,6 +13,7 @@
 
 <div
 	class="flex items-center gap-1.5 min-w-0 {compact ? 'text-xs' : 'text-sm'}"
+	style="opacity: {isEventPast(event.end) ? 0.4 : 1}"
 >
 	<span
 		class="shrink-0 rounded-full {compact ? 'w-2 h-2' : 'w-2.5 h-2.5'}"
@@ -20,7 +21,7 @@
 	></span>
 	{#if !event.allDay}
 		<span class="shrink-0 text-text-secondary font-medium tabular-nums">
-			{formatTime(event.start, timeFormat)}
+			{formatTimeRange(event.start, event.end, timeFormat)}
 		</span>
 	{/if}
 	<span class="truncate">{event.title}</span>
