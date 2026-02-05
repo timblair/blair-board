@@ -11,10 +11,12 @@ Currently read-only. Future plans include touchscreen interactivity.
 ## Requirements
 
 - **Calendar sources**: 5+ iCal feeds (any provider that exposes a public `.ics` URL), each with a configurable display colour
-- **Views**: Configurable between week (time-grid) and month (day-grid), with a schedule/agenda sidebar always visible
-- **Week view**: Full time-grid with events positioned proportionally on a vertical time axis (06:00-22:00), all-day events in a bar above
-- **Month view**: Traditional grid with event chips stacked per day cell, "+N more" overflow
-- **Agenda panel**: Shows events for today + tomorrow in a scrolling list, grouped by day
+- **Views**: Four view options (week, week+next, 4-week, month) with a collapsible agenda sidebar
+- **Week view**: Full time-grid with events positioned proportionally on a vertical time axis (configurable hours), all-day events in a bar above, overlapping events displayed side-by-side
+- **Week+Next view**: Current week time-grid plus simplified next week preview with spanning events
+- **4-Week view**: Four-week overview grid with spanning multi-day events
+- **Month view**: Traditional grid with spanning multi-day event bars and stacked single-day events, "+N more" overflow
+- **Agenda panel**: Shows events for today + tomorrow (configurable) in a scrolling list, grouped by day
 - **Event display**: Title + time only (minimal)
 - **Auto-refresh**: Client polls the server every N minutes for updated data
 - **Design**: Clean and minimal, light mode only, Inter font, optimised for at-a-glance readability
@@ -28,7 +30,7 @@ Currently read-only. Future plans include touchscreen interactivity.
 | Language | TypeScript | Strict mode |
 | Styling | Tailwind CSS v4 | Via `@tailwindcss/vite` plugin, custom theme in `src/app.css` |
 | Font | Inter | Self-hosted via `@fontsource/inter` |
-| iCal parsing | `node-ical` | Handles RRULE expansion, EXDATE, timezone-aware dates |
+| iCal parsing | `ical.js` | Handles RRULE expansion, EXDATE, RECURRENCE-ID overrides |
 | Date utilities | `date-fns` + `date-fns-tz` | Timezone conversion, formatting, date math |
 | Config validation | `zod` v4 | Import path is `zod/v4` |
 | Adapter | `@sveltejs/adapter-node` | Produces standalone Node.js server |
@@ -55,22 +57,23 @@ GET /api/events ──────> JSON response: { events: CalendarEvent[], co
     v
 +page.svelte ─────────> CalendarState (rune-based class) manages all UI state
     |                    Polls /api/events every N minutes via setInterval
+    |                    Persists view selection and hidden calendars to localStorage
     v
-Components ───────────> CalendarWeek / CalendarMonth / AgendaPanel
+Components ───────────> CalendarWeek / CalendarWeekNext / CalendarMonth / AgendaPanel
 ```
 
 ### Server-Side
 
 - **Config** (`src/lib/server/config.ts`): Reads `config.json` from the project root, validates with zod, caches in a module-level variable
 - **Cache** (`src/lib/server/cache.ts`): Generic `TTLCache<T>` class using a `Map` with timestamps. Module-level singleton persists across requests in the Node adapter
-- **Calendar Fetcher** (`src/lib/server/calendar-fetcher.ts`): Core logic. Fetches iCal feeds via `node-ical`, caches raw parsed data, expands recurring events within the requested date range, converts all times to the configured timezone, normalises to `CalendarEvent[]`. Uses `Promise.allSettled` so one failing feed doesn't break the others
-- **API Endpoint** (`src/routes/api/events/+server.ts`): Accepts `?view=week|month&date=ISO`. Computes the date range (extends to cover both the calendar view and the agenda panel), calls the fetcher, strips iCal URLs from the config before responding
+- **Calendar Fetcher** (`src/lib/server/calendar-fetcher.ts`): Core logic. Fetches iCal feeds via `ical.js`, caches raw parsed data, expands recurring events within the requested date range using `ICAL.Event.iterator()`, converts all times to the configured timezone, normalises to `CalendarEvent[]`. Uses `Promise.allSettled` so one failing feed doesn't break the others
+- **API Endpoint** (`src/routes/api/events/+server.ts`): Accepts `?view=week|weeknext|4week|month&date=ISO`. Computes the date range (extends to cover both the calendar view and the agenda panel), calls the fetcher, strips iCal URLs from the config before responding
 
 ### Client-Side
 
-- **Reactive State** (`src/lib/stores/calendar.svelte.ts`): A `CalendarState` class using Svelte 5 runes. Manages `events`, `currentView`, `referenceDate`, `loading`, `error`, `config`. Exposes derived getters: `agendaEvents`, `calendarViewEvents`, `periodLabel`, `weekStartsOn`. Has methods for navigation (`navigatePrevious/Next/Today`), view switching, and fetching
+- **Reactive State** (`src/lib/stores/calendar.svelte.ts`): A `CalendarState` class using Svelte 5 runes. Manages `events`, `currentView`, `referenceDate`, `loading`, `error`, `config`, `hiddenCalendarIds`, `agendaVisible`. Exposes derived getters: `agendaEvents`, `calendarViewEvents`, `visibleEvents`, `periodLabel`, `weekStartsOn`. Has methods for navigation (`navigatePrevious/Next/Today`), view switching, calendar visibility toggling, and fetching. Persists view selection, hidden calendars, and agenda visibility to localStorage
 - **Page** (`src/routes/+page.svelte`): Initialises state from SSR data, sets up polling via `onMount`, re-fetches on view/date changes via `$effect`
-- **Components**: `CalendarWeek`, `CalendarMonth`, `AgendaPanel`, `EventChip`, `DayColumn`, `MonthDay`, `ViewSwitcher`, `DateNavigation`, `CalendarLegend`
+- **Components**: `CalendarWeek`, `CalendarWeekNext`, `CalendarMonth`, `AgendaPanel`, `EventChip`, `DayColumn`, `NextWeekDay`, `MonthDay`, `ViewSwitcher`, `DateNavigation`, `CalendarLegend`
 
 ### Configuration
 
@@ -83,10 +86,12 @@ All configuration lives in `config.json` at the project root (gitignored). See `
 | | `url` | string (URL) | - | iCal feed URL |
 | | `colour` | string (hex) | - | CSS colour for events |
 | | `enabled` | boolean | - | Whether to show this calendar |
-| `display` | `defaultView` | `"week"` / `"month"` | `"week"` | Initial view on load |
+| `display` | `defaultView` | `"week"` / `"weeknext"` / `"4week"` / `"month"` | `"week"` | Initial view on load |
 | | `agendaDays` | number (1-14) | `2` | Days shown in agenda panel |
 | | `weekStartsOn` | `0` / `1` | `1` | 0 = Sunday, 1 = Monday |
 | | `timeFormat` | `"12h"` / `"24h"` | `"24h"` | Clock format |
+| | `gridStartHour` | number (0-23) | `6` | Time grid start hour |
+| | `gridEndHour` | number (1-24) | `22` | Time grid end hour |
 | `refresh` | `clientPollIntervalMinutes` | number | `5` | Client polling frequency |
 | | `serverCacheTTLMinutes` | number | `15` | Server-side cache duration |
 | `timezone` | - | string (IANA) | `"Europe/London"` | Display timezone |
@@ -120,12 +125,14 @@ interface ClientConfig {
 | Decision | Rationale |
 |----------|-----------|
 | **iCal feeds** (not Google Calendar API) | Keeps it source-agnostic (Google, Apple, Outlook all work). No OAuth complexity for multiple accounts. Simpler to set up. |
+| **ical.js** (not node-ical) | node-ical has a bug where RECURRENCE-ID overrides (with higher SEQUENCE numbers) cause the base recurring event to be ignored. ical.js handles this correctly via `ICAL.Event.iterator()`. |
 | **Server-side RRULE expansion** | Client stays simple — only deals with flat event objects. No need to ship ical.js to the browser. Raw iCal data is cached; expansion per request is fast in-memory. |
 | **Server-side timezone conversion** | Dashboard always shows home timezone. Client is TZ-unaware. |
 | **Polling** (not SSE/WebSockets) | Calendar data changes infrequently (minutes, not seconds). Simpler to implement and debug. No persistent connection management. Cloud-migration friendly. |
 | **JSON config file** (not DB) | Single-household app. No auth/multi-user needed yet. Simple to edit. |
 | **Inline styles for calendar colours** | Tailwind can't handle arbitrary runtime colour values in class names. Event chips use `style="border-left-color: {colour}"`. |
 | **CalendarState class** (not context/stores) | Svelte 5 runes work naturally in classes. Single instance per page. No need for context propagation — passed as props or used directly. |
+| **Per-week-row spanning** | Multi-day events in month/4-week views are rendered as separate bars for each week row they span (like Google Calendar). Simpler than full grid spanning and avoids complex wrap calculations. |
 
 ## Future Plans
 
@@ -155,14 +162,16 @@ blair-board/
 │   └── lib/
 │       ├── components/
 │       │   ├── AgendaPanel.svelte        # Today + tomorrow event list sidebar
-│       │   ├── CalendarLegend.svelte     # Colour swatches for calendar sources
-│       │   ├── CalendarMonth.svelte      # Month grid view
+│       │   ├── CalendarLegend.svelte     # Colour swatches (clickable to toggle)
+│       │   ├── CalendarMonth.svelte      # Month/4-week grid view with spanning events
 │       │   ├── CalendarWeek.svelte       # Time-grid week view
+│       │   ├── CalendarWeekNext.svelte   # Week + simplified next week preview
 │       │   ├── DateNavigation.svelte     # Prev / Today / Next + period label
 │       │   ├── DayColumn.svelte          # Single day in week view (time axis)
 │       │   ├── EventChip.svelte          # Single event: colour dot + time + title
-│       │   ├── MonthDay.svelte           # Single cell in month grid
-│       │   └── ViewSwitcher.svelte       # Week / Month toggle
+│       │   ├── MonthDay.svelte           # Single cell in month/4-week grid
+│       │   ├── NextWeekDay.svelte        # Single day cell in next-week preview
+│       │   └── ViewSwitcher.svelte       # View toggle (Week/Week+/4Week/Month)
 │       ├── server/
 │       │   ├── cache.ts                  # Generic in-memory TTL cache
 │       │   ├── calendar-fetcher.ts       # iCal fetch, RRULE expansion, normalisation
@@ -171,9 +180,11 @@ blair-board/
 │       │   └── calendar.svelte.ts        # Svelte 5 rune-based reactive state class
 │       ├── types/
 │       │   ├── config.ts                 # Zod schemas + TypeScript types for config
-│       │   └── events.ts                 # CalendarEvent interface
+│       │   ├── events.ts                 # CalendarEvent interface
+│       │   └── ical.d.ts                 # Minimal type definitions for ical.js
 │       └── utils/
-│           └── date-helpers.ts           # Date math, formatting, time grid constants
+│           ├── date-helpers.ts           # Date math, formatting, time grid constants
+│           └── spanning-events.ts        # Shared logic for multi-day event spanning
 ├── svelte.config.js                     # adapter-node config
 ├── vite.config.ts                       # Tailwind + SvelteKit plugins
 ├── tsconfig.json
@@ -184,7 +195,9 @@ blair-board/
 
 - **Svelte 5 `$state` rune conflict**: Never name a variable `state` — it conflicts with the `$state` rune. Use `cal`, `store`, etc.
 - **zod v4 import path**: Must import from `zod/v4`, not `zod`
-- **node-ical `ParameterValue`**: Properties like `summary` can be a plain string or `{ params, val }`. Use a helper to extract the value.
+- **ical.js has no built-in types**: Minimal type definitions are in `src/lib/types/ical.d.ts`
+- **ical.js RECURRENCE-ID handling**: Skip events with RECURRENCE-ID in the iteration loop — they're handled automatically by the iterator
 - **Homebrew Node.js + icu4c**: Upgrading icu4c breaks Node. Fix with `brew reinstall node`.
 - **pnpm + esbuild**: esbuild's postinstall script needs approval. Run `pnpm rebuild esbuild` after fresh install.
 - **Calendar colours**: Applied via inline `style` attributes, not Tailwind classes (Tailwind can't handle arbitrary runtime colours).
+- **iCal RFC 5545 all-day events**: All-day events use exclusive DTEND — an event ending on Feb 15 only shows on Feb 14.
