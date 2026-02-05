@@ -1,30 +1,24 @@
-import ical, { type CalendarResponse, type VEvent } from 'node-ical';
+import ICAL from 'ical.js';
 import { toZonedTime } from 'date-fns-tz';
 import type { CalendarSourceConfig } from '$lib/types/config';
 import type { CalendarEvent } from '$lib/types/events';
 import { TTLCache } from './cache';
 
-// Cache raw parsed iCal data per source (not expanded events)
-const rawCache = new TTLCache<CalendarResponse>();
-
-function getParameterValue(val: unknown): string {
-	if (typeof val === 'string') return val;
-	if (val && typeof val === 'object' && 'val' in val) return String((val as { val: unknown }).val);
-	return '';
-}
+// Cache raw iCal text per source
+const rawCache = new TTLCache<string>();
 
 function toCalendarEvent(
 	uid: string,
 	start: Date,
 	end: Date,
 	allDay: boolean,
-	summary: unknown,
+	summary: string,
 	source: CalendarSourceConfig,
 	instanceKey?: string
 ): CalendarEvent {
 	return {
 		id: instanceKey ? `${uid}_${instanceKey}` : uid,
-		title: getParameterValue(summary) || '(No title)',
+		title: summary || '(No title)',
 		start: start.toISOString(),
 		end: end.toISOString(),
 		allDay,
@@ -35,7 +29,7 @@ function toCalendarEvent(
 }
 
 function expandEvents(
-	data: CalendarResponse,
+	icalData: string,
 	rangeStart: Date,
 	rangeEnd: Date,
 	source: CalendarSourceConfig,
@@ -43,61 +37,80 @@ function expandEvents(
 ): CalendarEvent[] {
 	const events: CalendarEvent[] = [];
 
-	for (const [key, component] of Object.entries(data)) {
-		if (!component || component.type !== 'VEVENT') continue;
+	try {
+		const jcalData = ICAL.parse(icalData);
+		const comp = new ICAL.Component(jcalData);
+		const vevents = comp.getAllSubcomponents('vevent');
 
-		const event = component as VEvent;
-		const uid = event.uid ?? key;
-
-		if (event.rrule) {
-			// Recurring event — expand instances within range
+		for (const vevent of vevents) {
 			try {
-				const instances = ical.expandRecurringEvent(event, {
-					from: rangeStart,
-					to: rangeEnd,
-					includeOverrides: true,
-					excludeExdates: true
-				});
+				const event = new ICAL.Event(vevent);
 
-				for (const instance of instances) {
-					const start = convertToTimezone(instance.start, timezone);
-					const end = convertToTimezone(instance.end, timezone);
-					events.push(
-						toCalendarEvent(
-							uid,
-							start,
-							end,
-							instance.isFullDay,
-							instance.summary ?? event.summary,
-							source,
-							instance.start.toISOString()
-						)
-					);
+				// Skip RECURRENCE-ID overrides — they're handled by ical.js automatically
+				if (vevent.hasProperty('recurrence-id')) {
+					continue;
 				}
-			} catch {
-				// If RRULE expansion fails, skip this event silently
-				console.warn(`Failed to expand recurring event: ${uid} from ${source.name}`);
+
+				const uid = event.uid;
+				const summary = event.summary || '(No title)';
+
+				if (event.isRecurring()) {
+					// Recurring event — expand instances within range
+					const iterator = event.iterator();
+					let next;
+					let count = 0;
+					const maxIterations = 5000; // Safety limit
+
+					while ((next = iterator.next()) && count < maxIterations) {
+						count++;
+						const startTime = next.toJSDate();
+
+						// Stop if we're past the range
+						if (startTime > rangeEnd) break;
+
+						// Get the occurrence details
+						const occurrence = event.getOccurrenceDetails(next);
+						const startDate = occurrence.startDate.toJSDate();
+						const endDate = occurrence.endDate.toJSDate();
+
+						// Skip if before range
+						if (endDate < rangeStart) continue;
+
+						const allDay = !occurrence.startDate.isDate ? false : true;
+						const start = convertToTimezone(startDate, timezone);
+						const end = convertToTimezone(endDate, timezone);
+
+						events.push(
+							toCalendarEvent(uid, start, end, allDay, summary, source, startDate.toISOString())
+						);
+					}
+				} else {
+					// Single event — check if it falls within range
+					const startDate = event.startDate.toJSDate();
+					const endDate = event.endDate.toJSDate();
+
+					// Check overlap with range
+					if (endDate < rangeStart || startDate > rangeEnd) continue;
+
+					const allDay = event.startDate.isDate;
+					const start = convertToTimezone(startDate, timezone);
+					const end = convertToTimezone(endDate, timezone);
+
+					events.push(toCalendarEvent(uid, start, end, allDay, summary, source));
+				}
+			} catch (err) {
+				// Skip individual events that fail to parse
+				console.warn(
+					`Failed to process event in ${source.name}:`,
+					err instanceof Error ? err.message : err
+				);
 			}
-		} else {
-			// Single event — check if it falls within range
-			if (!event.start) continue;
-
-			const eventStart = event.start instanceof Date ? event.start : new Date(event.start);
-			const eventEnd = event.end
-				? event.end instanceof Date
-					? event.end
-					: new Date(event.end)
-				: eventStart;
-
-			// Check overlap with range
-			if (eventEnd < rangeStart || eventStart > rangeEnd) continue;
-
-			const allDay = (event.datetype === 'date') || !!(event.start as { dateOnly?: boolean }).dateOnly;
-			const start = convertToTimezone(eventStart, timezone);
-			const end = convertToTimezone(eventEnd, timezone);
-
-			events.push(toCalendarEvent(uid, start, end, allDay, event.summary, source));
 		}
+	} catch (err) {
+		console.error(
+			`Failed to parse calendar ${source.name}:`,
+			err instanceof Error ? err.message : err
+		);
 	}
 
 	return events;
@@ -121,11 +134,15 @@ export async function fetchCalendarEvents(
 		sources
 			.filter((s) => s.enabled)
 			.map(async (source) => {
-				// Check cache for raw parsed data
+				// Check cache for raw iCal data
 				let rawData = rawCache.get(source.id);
 
 				if (!rawData) {
-					rawData = await ical.async.fromURL(source.url);
+					const response = await fetch(source.url);
+					if (!response.ok) {
+						throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+					}
+					rawData = await response.text();
 					rawCache.set(source.id, rawData, ttlMs);
 				}
 
