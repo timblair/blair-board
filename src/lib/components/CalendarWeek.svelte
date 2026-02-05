@@ -9,16 +9,24 @@
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
 	import DayColumn from './DayColumn.svelte';
-	import EventChip from './EventChip.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
 		referenceDate: Date;
 		weekStartsOn?: WeekStartsOn;
 		timeFormat?: '12h' | '24h';
+		gridStartHour?: number;
+		gridEndHour?: number;
 	}
 
-	let { events, referenceDate, weekStartsOn = 1, timeFormat = '24h' }: Props = $props();
+	let {
+		events,
+		referenceDate,
+		weekStartsOn = 1,
+		timeFormat = '24h',
+		gridStartHour = GRID_START_HOUR,
+		gridEndHour = GRID_END_HOUR
+	}: Props = $props();
 
 	let days = $derived(getWeekDays(referenceDate, weekStartsOn));
 
@@ -42,8 +50,8 @@
 
 	// Time axis labels
 	let timeLabels = $derived(
-		Array.from({ length: GRID_END_HOUR - GRID_START_HOUR }, (_, i) => {
-			const hour = GRID_START_HOUR + i;
+		Array.from({ length: gridEndHour - gridStartHour }, (_, i) => {
+			const hour = gridStartHour + i;
 			if (timeFormat === '24h') {
 				return `${hour.toString().padStart(2, '0')}:00`;
 			}
@@ -52,12 +60,15 @@
 			return `${h} ${ampm}`;
 		})
 	);
+
+	// Calculate grid height: 60px per hour
+	let gridHeight = $derived((gridEndHour - gridStartHour) * 60);
 </script>
 
 <div class="flex flex-col h-full bg-surface rounded-lg border border-border overflow-hidden">
 	<!-- All-day events row -->
 	{#if allDayEvents.length > 0}
-		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border">
+		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border shrink-0">
 			<div class="text-xs text-text-tertiary px-1 py-1 text-right">All day</div>
 			{#each days as day (day.toISOString())}
 				<div class="border-l border-border px-1 py-1 space-y-0.5 min-w-0 overflow-hidden">
@@ -75,8 +86,11 @@
 	{/if}
 
 	<!-- Time grid -->
-	<div class="flex-1 overflow-y-auto">
-		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] relative min-h-full">
+	<div class="flex-1 overflow-y-auto min-h-0">
+		<div
+			class="grid grid-cols-[3.5rem_repeat(7,1fr)] relative"
+			style="height: {gridHeight}px; min-height: {gridHeight}px;"
+		>
 			<!-- Time axis -->
 			<div class="relative">
 				{#each timeLabels as label, i}
@@ -91,7 +105,7 @@
 
 			<!-- Day columns -->
 			{#each days as day (day.toISOString())}
-				<div class="border-l border-border relative">
+				<div class="border-l border-border relative h-full">
 					<!-- Hour grid lines -->
 					{#each timeLabels as _, i}
 						<div
@@ -100,7 +114,13 @@
 						></div>
 					{/each}
 
-					<DayColumn date={day} events={eventsForDay(day)} {timeFormat} />
+					<DayColumn
+						date={day}
+						events={eventsForDay(day)}
+						{timeFormat}
+						{gridStartHour}
+						{gridEndHour}
+					/>
 				</div>
 			{/each}
 		</div>

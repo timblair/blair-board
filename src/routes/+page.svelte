@@ -85,6 +85,8 @@
 					referenceDate={cal.referenceDate}
 					weekStartsOn={cal.weekStartsOn}
 					timeFormat={cal.config?.display.timeFormat}
+					gridStartHour={cal.config?.display.gridStartHour}
+					gridEndHour={cal.config?.display.gridEndHour}
 				/>
 			{:else if cal.currentView === '4week'}
 				<CalendarMonth

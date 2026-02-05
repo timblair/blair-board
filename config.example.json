@@ -26,7 +26,9 @@
 		"defaultView": "week",
 		"agendaDays": 2,
 		"weekStartsOn": 1,
-		"timeFormat": "24h"
+		"timeFormat": "24h",
+		"gridStartHour": 6,
+		"gridEndHour": 22
 	},
 	"refresh": {
 		"clientPollIntervalMinutes": 5,
