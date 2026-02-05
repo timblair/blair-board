@@ -2,13 +2,13 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getConfig } from '$lib/server/config';
 import { fetchCalendarEvents } from '$lib/server/calendar-fetcher';
-import { getViewRange, addDays, startOfDay, endOfDay } from '$lib/utils/date-helpers';
+import { getViewRange, addDays, startOfDay, endOfDay, type CalendarView } from '$lib/utils/date-helpers';
 import type { ClientConfig } from '$lib/types/config';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const config = getConfig();
 
-	const view = (url.searchParams.get('view') as 'week' | 'month') ?? config.display.defaultView;
+	const view = (url.searchParams.get('view') as CalendarView) ?? config.display.defaultView;
 	const refDate = url.searchParams.get('date') ? new Date(url.searchParams.get('date')!) : new Date();
 
 	// Calculate date range for the calendar view

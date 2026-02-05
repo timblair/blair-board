@@ -16,6 +16,7 @@ import {
 export { isToday, isTomorrow, isSameDay, startOfDay, endOfDay, addDays, parseISO };
 
 export type WeekStartsOn = 0 | 1;
+export type CalendarView = 'week' | '4week' | 'month';
 
 export function getWeekRange(
 	date: Date,
@@ -34,12 +35,25 @@ export function getMonthRange(date: Date): { start: Date; end: Date } {
 	};
 }
 
-export function getViewRange(
-	view: 'week' | 'month',
+export function get4WeekRange(
 	date: Date,
 	weekStartsOn: WeekStartsOn
 ): { start: Date; end: Date } {
-	return view === 'week' ? getWeekRange(date, weekStartsOn) : getMonthRange(date);
+	const start = startOfWeek(date, { weekStartsOn });
+	return {
+		start,
+		end: endOfWeek(addDays(start, 21), { weekStartsOn })
+	};
+}
+
+export function getViewRange(
+	view: CalendarView,
+	date: Date,
+	weekStartsOn: WeekStartsOn
+): { start: Date; end: Date } {
+	if (view === 'week') return getWeekRange(date, weekStartsOn);
+	if (view === '4week') return get4WeekRange(date, weekStartsOn);
+	return getMonthRange(date);
 }
 
 export function formatTime(date: Date | string, timeFormat: '12h' | '24h'): string {
@@ -54,6 +68,13 @@ export function formatWeekLabel(date: Date, weekStartsOn: WeekStartsOn): string 
 		start.getMonth() === end.getMonth()
 			? format(end, 'd MMM yyyy')
 			: format(end, 'd MMM yyyy');
+	return `${startStr} – ${endStr}`;
+}
+
+export function format4WeekLabel(date: Date, weekStartsOn: WeekStartsOn): string {
+	const { start, end } = get4WeekRange(date, weekStartsOn);
+	const startStr = format(start, 'd MMM');
+	const endStr = format(end, 'd MMM yyyy');
 	return `${startStr} – ${endStr}`;
 }
 
@@ -75,6 +96,12 @@ export function formatAgendaDayHeader(date: Date): string {
 export function getWeekDays(date: Date, weekStartsOn: WeekStartsOn): Date[] {
 	const start = startOfWeek(date, { weekStartsOn });
 	return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+}
+
+/** Returns an array of 28 dates for the 4-week grid (this week + 3 more) */
+export function get4WeekGridDays(date: Date, weekStartsOn: WeekStartsOn): Date[] {
+	const start = startOfWeek(date, { weekStartsOn });
+	return Array.from({ length: 28 }, (_, i) => addDays(start, i));
 }
 
 /** Returns an array of dates for all day cells in the month grid (includes padding days) */

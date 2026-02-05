@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { CalendarState } from '$lib/stores/calendar.svelte';
+	import { get4WeekGridDays } from '$lib/utils/date-helpers';
 	import CalendarWeek from '$lib/components/CalendarWeek.svelte';
 	import CalendarMonth from '$lib/components/CalendarMonth.svelte';
 	import AgendaPanel from '$lib/components/AgendaPanel.svelte';
@@ -84,6 +85,14 @@
 					referenceDate={cal.referenceDate}
 					weekStartsOn={cal.weekStartsOn}
 					timeFormat={cal.config?.display.timeFormat}
+				/>
+			{:else if cal.currentView === '4week'}
+				<CalendarMonth
+					events={cal.calendarViewEvents}
+					referenceDate={cal.referenceDate}
+					weekStartsOn={cal.weekStartsOn}
+					timeFormat={cal.config?.display.timeFormat}
+					days={get4WeekGridDays(cal.referenceDate, cal.weekStartsOn)}
 				/>
 			{:else}
 				<CalendarMonth

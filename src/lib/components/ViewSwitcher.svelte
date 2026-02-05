@@ -1,27 +1,29 @@
 <script lang="ts">
+	import type { CalendarView } from '$lib/utils/date-helpers';
+
 	interface Props {
-		currentView: 'week' | 'month';
-		onchange: (view: 'week' | 'month') => void;
+		currentView: CalendarView;
+		onchange: (view: CalendarView) => void;
 	}
 
 	let { currentView, onchange }: Props = $props();
+
+	const views: { value: CalendarView; label: string }[] = [
+		{ value: 'week', label: 'Week' },
+		{ value: '4week', label: '4 Week' },
+		{ value: 'month', label: 'Month' }
+	];
 </script>
 
 <div class="flex rounded-lg border border-border bg-surface overflow-hidden">
-	<button
-		class="px-3 py-1.5 text-sm font-medium transition-colors {currentView === 'week'
-			? 'bg-text text-surface'
-			: 'text-text-secondary hover:text-text'}"
-		onclick={() => onchange('week')}
-	>
-		Week
-	</button>
-	<button
-		class="px-3 py-1.5 text-sm font-medium transition-colors {currentView === 'month'
-			? 'bg-text text-surface'
-			: 'text-text-secondary hover:text-text'}"
-		onclick={() => onchange('month')}
-	>
-		Month
-	</button>
+	{#each views as view (view.value)}
+		<button
+			class="px-3 py-1.5 text-sm font-medium transition-colors {currentView === view.value
+				? 'bg-text text-surface'
+				: 'text-text-secondary hover:text-text'}"
+			onclick={() => onchange(view.value)}
+		>
+			{view.label}
+		</button>
+	{/each}
 </div>

@@ -9,7 +9,7 @@ export const CalendarSourceSchema = z.object({
 });
 
 export const DisplayConfigSchema = z.object({
-	defaultView: z.enum(['week', 'month']),
+	defaultView: z.enum(['week', '4week', 'month']),
 	agendaDays: z.number().int().min(1).max(14).default(2),
 	weekStartsOn: z.literal(0).or(z.literal(1)).default(1),
 	timeFormat: z.enum(['12h', '24h']).default('24h')

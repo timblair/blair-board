@@ -14,11 +14,12 @@
 		referenceDate: Date;
 		weekStartsOn?: WeekStartsOn;
 		timeFormat?: '12h' | '24h';
+		days?: Date[];
 	}
 
-	let { events, referenceDate, weekStartsOn = 1, timeFormat = '24h' }: Props = $props();
+	let { events, referenceDate, weekStartsOn = 1, timeFormat = '24h', days }: Props = $props();
 
-	let gridDays = $derived(getMonthGridDays(referenceDate, weekStartsOn));
+	let gridDays = $derived(days ?? getMonthGridDays(referenceDate, weekStartsOn));
 
 	let dayHeaders = $derived(
 		(() => {

@@ -7,13 +7,15 @@ import {
 	parseISO,
 	getViewRange,
 	formatWeekLabel,
+	format4WeekLabel,
 	formatMonthLabel,
-	type WeekStartsOn
+	type WeekStartsOn,
+	type CalendarView
 } from '$lib/utils/date-helpers';
 
 export class CalendarState {
 	events = $state<CalendarEvent[]>([]);
-	currentView = $state<'week' | 'month'>('week');
+	currentView = $state<CalendarView>('week');
 	referenceDate = $state<Date>(new Date());
 	loading = $state(false);
 	error = $state<string | null>(null);
@@ -49,6 +51,9 @@ export class CalendarState {
 		if (this.currentView === 'week') {
 			return formatWeekLabel(this.referenceDate, this.weekStartsOn);
 		}
+		if (this.currentView === '4week') {
+			return format4WeekLabel(this.referenceDate, this.weekStartsOn);
+		}
 		return formatMonthLabel(this.referenceDate);
 	}
 
@@ -78,6 +83,8 @@ export class CalendarState {
 	navigatePrevious(): void {
 		if (this.currentView === 'week') {
 			this.referenceDate = addDays(this.referenceDate, -7);
+		} else if (this.currentView === '4week') {
+			this.referenceDate = addDays(this.referenceDate, -28);
 		} else {
 			const d = new Date(this.referenceDate);
 			d.setMonth(d.getMonth() - 1);
@@ -88,6 +95,8 @@ export class CalendarState {
 	navigateNext(): void {
 		if (this.currentView === 'week') {
 			this.referenceDate = addDays(this.referenceDate, 7);
+		} else if (this.currentView === '4week') {
+			this.referenceDate = addDays(this.referenceDate, 28);
 		} else {
 			const d = new Date(this.referenceDate);
 			d.setMonth(d.getMonth() + 1);
@@ -99,7 +108,7 @@ export class CalendarState {
 		this.referenceDate = new Date();
 	}
 
-	setView(view: 'week' | 'month'): void {
+	setView(view: CalendarView): void {
 		this.currentView = view;
 	}
 }
