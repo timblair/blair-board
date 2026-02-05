@@ -15,6 +15,7 @@
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
 	import CalendarWeek from './CalendarWeek.svelte';
+	import NextWeekDay from './NextWeekDay.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
@@ -222,37 +223,14 @@
 				<div class="grid grid-cols-7 h-full">
 					{#each nextWeekDays as day, dayIndex (day.toISOString())}
 						{@const dayEvents = singleDayEventsForDay(day)}
-						{@const today = isToday(day)}
 						{@const spanRows = spanningRowsForDay(dayIndex)}
-						<div
-							class="border-l first:border-l-0 border-border flex flex-col min-h-0 {today
-								? 'bg-today-bg'
-								: ''}"
-						>
-							<div
-								class="flex-1 overflow-y-auto min-h-0 p-1"
-								style="padding-top: calc({spanRows * SPANNING_ROW_HEIGHT}rem + 0.25rem)"
-							>
-								<div class="flex flex-col gap-1">
-									{#each dayEvents as event (event.id)}
-										<div
-											class="text-xs rounded cursor-default"
-											style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; padding: 4px 4px; opacity: {isEventPast(event.end) ? 0.4 : 1}"
-											title="{event.allDay
-												? 'All day'
-												: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
-										>
-											<div class="font-medium truncate leading-tight">{event.title}</div>
-											{#if !event.allDay}
-												<div class="text-text-secondary tabular-nums leading-tight mt-0.5">
-													{formatTimeRange(event.start, event.end, timeFormat)}
-												</div>
-											{/if}
-										</div>
-									{/each}
-								</div>
-							</div>
-						</div>
+						<NextWeekDay
+							{day}
+							events={dayEvents}
+							{spanRows}
+							spanningRowHeight={SPANNING_ROW_HEIGHT}
+							{timeFormat}
+						/>
 					{/each}
 				</div>
 			</div>

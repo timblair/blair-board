@@ -8,7 +8,9 @@ export const load: PageServerLoad = async () => {
 	const config = getConfig();
 	const now = new Date();
 
-	const viewRange = getViewRange(config.display.defaultView, now, config.display.weekStartsOn);
+	// Use '4week' view to ensure we fetch enough data for any persisted view
+	// (since we can't access localStorage during SSR)
+	const viewRange = getViewRange('4week', now, config.display.weekStartsOn);
 	const today = startOfDay(now);
 	const agendaEnd = endOfDay(addDays(today, config.display.agendaDays - 1));
 

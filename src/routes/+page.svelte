@@ -60,7 +60,11 @@
 
 			<div class="flex items-center gap-4">
 				{#if cal.config}
-					<CalendarLegend calendars={cal.config.calendars} />
+					<CalendarLegend
+						calendars={cal.config.calendars}
+						hiddenCalendarIds={cal.hiddenCalendarIds}
+						ontoggle={(id) => cal.toggleCalendarVisibility(id)}
+					/>
 				{/if}
 				<ViewSwitcher
 					currentView={cal.currentView}
@@ -117,12 +121,30 @@
 		</main>
 
 		<!-- Agenda sidebar -->
-		<div class="w-72 shrink-0 hidden md:block">
-			<AgendaPanel
-				events={cal.agendaEvents}
-				timeFormat={cal.config?.display.timeFormat}
-				agendaDays={cal.config?.display.agendaDays}
-			/>
-		</div>
+		{#if cal.agendaVisible}
+			<div class="w-72 shrink-0 hidden md:block">
+				<AgendaPanel
+					events={cal.agendaEvents}
+					timeFormat={cal.config?.display.timeFormat}
+					agendaDays={cal.config?.display.agendaDays}
+					onclose={() => cal.toggleAgenda()}
+				/>
+			</div>
+		{:else}
+			<button
+				class="w-8 shrink-0 hidden md:flex items-start justify-center pt-3 bg-surface border-l border-border hover:bg-border-light/30 transition-colors"
+				onclick={() => cal.toggleAgenda()}
+				title="Show schedule"
+			>
+				<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6h16M4 12h16M4 18h16"
+					/>
+				</svg>
+			</button>
+		{/if}
 	</div>
 </div>

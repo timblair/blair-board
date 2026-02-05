@@ -7,9 +7,10 @@
 		events: CalendarEvent[];
 		timeFormat?: '12h' | '24h';
 		agendaDays?: number;
+		onclose?: () => void;
 	}
 
-	let { events, timeFormat = '24h', agendaDays = 2 }: Props = $props();
+	let { events, timeFormat = '24h', agendaDays = 2, onclose }: Props = $props();
 
 	interface DayGroup {
 		date: Date;
@@ -55,8 +56,19 @@
 </script>
 
 <aside class="flex flex-col h-full bg-surface border-l border-border">
-	<div class="px-4 py-3 border-b border-border">
+	<div class="px-4 py-3 border-b border-border flex items-center justify-between">
 		<h2 class="text-sm font-semibold text-text-secondary uppercase tracking-wider">Schedule</h2>
+		{#if onclose}
+			<button
+				class="p-1 rounded hover:bg-border-light transition-colors"
+				onclick={onclose}
+				title="Hide schedule"
+			>
+				<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		{/if}
 	</div>
 
 	<div class="flex-1 overflow-y-auto">
