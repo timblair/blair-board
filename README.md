@@ -4,13 +4,19 @@ A family kitchen dashboard that displays multiple calendars from iCal feeds in a
 
 ## Features
 
-- **Week view** with time-grid (events positioned proportionally, 06:00-22:00)
-- **Month view** with event chips per day cell
-- **Agenda sidebar** showing today + tomorrow events
+- **Four calendar views**:
+  - **Week** — time-grid with events positioned proportionally (configurable hours)
+  - **Week+Next** — current week time-grid plus simplified next week preview
+  - **4 Week** — four-week overview grid
+  - **Month** — traditional monthly grid
+- **Spanning multi-day events** — multi-day and all-day events render as horizontal bars across day columns
+- **Agenda sidebar** — today + tomorrow events (collapsible)
 - **Multiple calendars** with colour coding (Google Calendar, Apple/iCloud, Outlook, etc.)
+- **Calendar visibility toggle** — click legend items to show/hide individual calendars
 - **Auto-refresh** via configurable polling interval
 - **Server-side rendering** for instant first paint
-- **Self-hosted** via Node.js -- no cloud account needed
+- **View persistence** — remembers your last selected view
+- **Self-hosted** via Node.js — no cloud account needed
 
 ## Quick Start
 
@@ -74,7 +80,9 @@ All settings are in `config.json` (gitignored). See `config.example.json` for th
     "defaultView": "week",
     "agendaDays": 2,
     "weekStartsOn": 1,
-    "timeFormat": "24h"
+    "timeFormat": "24h",
+    "gridStartHour": 6,
+    "gridEndHour": 22
   },
   "refresh": {
     "clientPollIntervalMinutes": 5,
@@ -93,10 +101,12 @@ All settings are in `config.json` (gitignored). See `config.example.json` for th
 | `calendars[].url` | string | required | iCal feed URL (.ics) |
 | `calendars[].colour` | string | required | Hex colour for events (e.g. `#4285F4`) |
 | `calendars[].enabled` | boolean | required | Show/hide this calendar |
-| `display.defaultView` | `"week"` \| `"month"` | `"week"` | View shown on load |
+| `display.defaultView` | `"week"` \| `"weeknext"` \| `"4week"` \| `"month"` | `"week"` | View shown on load |
 | `display.agendaDays` | 1-14 | `2` | Number of days in the agenda sidebar |
 | `display.weekStartsOn` | `0` \| `1` | `1` | 0 = Sunday, 1 = Monday |
 | `display.timeFormat` | `"12h"` \| `"24h"` | `"24h"` | Clock format |
+| `display.gridStartHour` | 0-23 | `6` | Time grid start hour (Week views) |
+| `display.gridEndHour` | 1-24 | `22` | Time grid end hour (Week views) |
 | `refresh.clientPollIntervalMinutes` | number | `5` | How often the browser fetches fresh data |
 | `refresh.serverCacheTTLMinutes` | number | `15` | How long the server caches iCal data |
 | `timezone` | string | `"Europe/London"` | IANA timezone for display |
@@ -105,7 +115,7 @@ All settings are in `config.json` (gitignored). See `config.example.json` for th
 
 - [SvelteKit](https://svelte.dev/docs/kit) + [Svelte 5](https://svelte.dev/docs/svelte) + TypeScript
 - [Tailwind CSS v4](https://tailwindcss.com/)
-- [node-ical](https://github.com/jens-maus/node-ical) for iCal parsing and recurring event expansion
+- [ical.js](https://github.com/kewisch/ical.js) for iCal parsing and recurring event expansion
 - [date-fns](https://date-fns.org/) + [date-fns-tz](https://github.com/marnusw/date-fns-tz) for dates and timezone handling
 - [Inter](https://rsms.me/inter/) typeface
 
@@ -123,7 +133,7 @@ src/
     ├── server/                   # Server-only: config, cache, iCal fetcher
     ├── stores/                   # Reactive state (Svelte 5 runes)
     ├── types/                    # TypeScript interfaces and zod schemas
-    └── utils/                    # Date helpers and constants
+    └── utils/                    # Date helpers, spanning event logic
 ```
 
 See [CONTEXT.md](CONTEXT.md) for detailed architecture documentation.
