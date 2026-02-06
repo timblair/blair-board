@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday, formatTime, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
+	import { isToday, formatTimeCompact, isEventPast } from '$lib/utils/date-helpers';
 	import { format } from 'date-fns';
 
 	interface Props {
@@ -108,7 +108,7 @@
 				title={event.title}
 			>
 				{#if !event.allDay}
-					<span class="text-text font-medium tabular-nums">{formatTimeRange(event.start, event.end, timeFormat)}</span
+					<span class="text-text-secondary tabular-nums">{formatTimeCompact(event.start, timeFormat)}</span
 					>
 				{/if}
 				<span class="font-semibold">{event.title}</span>

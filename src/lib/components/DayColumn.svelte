@@ -194,14 +194,14 @@
 				<!-- Single-line format for short events: title + start time only -->
 				<div class="font-semibold truncate" style={styling.textStyle}>
 					{layout.event.title}
-					<span class="text-text font-medium tabular-nums ml-1"
+					<span class="text-text-secondary font-normal tabular-nums ml-1"
 						>{formatTimeCompact(layout.event.start, timeFormat)}</span
 					>
 				</div>
 			{:else}
 				<!-- Two-line format for longer events: title on line 1, time range on line 2 -->
 				<div class="font-semibold truncate">{layout.event.title}</div>
-				<div class="text-text font-medium truncate tabular-nums">
+				<div class="text-text truncate tabular-nums">
 					{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
 				</div>
 			{/if}

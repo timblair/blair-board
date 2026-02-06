@@ -86,7 +86,7 @@
 				>
 					<div class="font-semibold truncate leading-tight">{event.title}</div>
 					{#if !event.allDay}
-						<div class="text-text font-medium tabular-nums leading-tight mt-0.5">
+						<div class="text-text-secondary tabular-nums leading-tight mt-0.5">
 							{formatTimeRange(event.start, event.end, timeFormat)}
 						</div>
 					{/if}

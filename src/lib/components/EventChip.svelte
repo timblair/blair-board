@@ -20,7 +20,7 @@
 		style="background-color: {event.colour}"
 	></span>
 	{#if !event.allDay}
-		<span class="shrink-0 text-text font-semibold tabular-nums">
+		<span class="shrink-0 text-text-secondary tabular-nums">
 			{formatTimeRange(event.start, event.end, timeFormat)}
 		</span>
 	{/if}
