@@ -117,7 +117,7 @@
 		<div class=""></div>
 		{#each days as day (day.toISOString())}
 			<div
-				class="text-center py-2.5 text-base font-semibold border-l border-border {isToday(day)
+				class="text-center py-1.5 text-base font-semibold border-l border-border {isToday(day)
 					? 'text-blue-700 bg-today-bg'
 					: 'text-text'}"
 			>
