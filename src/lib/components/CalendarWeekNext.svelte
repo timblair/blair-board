@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { CalendarEvent } from '$lib/types/events';
 	import {
 		getWeekDays,
@@ -41,6 +42,77 @@
 		gridEndHour
 	}: Props = $props();
 
+	// Resize handle state
+	const STORAGE_KEY = 'weekNextSplitRatio';
+	const DEFAULT_RATIO = 0.67; // Current week takes ~67% by default
+	const MIN_RATIO = 0.3;
+	const MAX_RATIO = 0.85;
+
+	let splitRatio = $state(DEFAULT_RATIO);
+	let isDragging = $state(false);
+	let containerEl: HTMLDivElement | undefined = $state();
+
+	// Load saved ratio from localStorage
+	$effect(() => {
+		if (browser) {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (saved) {
+				const parsed = parseFloat(saved);
+				if (!isNaN(parsed) && parsed >= MIN_RATIO && parsed <= MAX_RATIO) {
+					splitRatio = parsed;
+				}
+			}
+		}
+	});
+
+	function handlePointerDown(e: PointerEvent) {
+		isDragging = true;
+		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+	}
+
+	function handlePointerMove(e: PointerEvent) {
+		if (!isDragging || !containerEl) return;
+
+		const rect = containerEl.getBoundingClientRect();
+		const y = e.clientY - rect.top;
+		const ratio = Math.max(MIN_RATIO, Math.min(MAX_RATIO, y / rect.height));
+		splitRatio = ratio;
+	}
+
+	function handlePointerUp(e: PointerEvent) {
+		if (!isDragging) return;
+		isDragging = false;
+		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
+		// Persist to localStorage
+		if (browser) {
+			localStorage.setItem(STORAGE_KEY, splitRatio.toString());
+		}
+	}
+
+	function handleKeyDown(e: KeyboardEvent) {
+		const STEP = 0.05;
+		let newRatio = splitRatio;
+
+		if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+			newRatio = Math.max(MIN_RATIO, splitRatio - STEP);
+		} else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+			newRatio = Math.min(MAX_RATIO, splitRatio + STEP);
+		} else if (e.key === 'Home') {
+			newRatio = MIN_RATIO;
+		} else if (e.key === 'End') {
+			newRatio = MAX_RATIO;
+		} else {
+			return;
+		}
+
+		e.preventDefault();
+		splitRatio = newRatio;
+		if (browser) {
+			localStorage.setItem(STORAGE_KEY, splitRatio.toString());
+		}
+	}
+
 	let currentWeekDays = $derived(getWeekDays(referenceDate, weekStartsOn));
 	let nextWeekDays = $derived(
 		getWeekDays(addDays(currentWeekDays[0], 7), weekStartsOn)
@@ -78,9 +150,9 @@
 	const SPANNING_ROW_HEIGHT = 1.75; // rem per spanning event row (slightly larger for week+next view)
 </script>
 
-<div class="flex flex-col h-full gap-4">
+<div class="flex flex-col h-full" bind:this={containerEl}>
 	<!-- Current week: time grid -->
-	<div class="flex-[2] min-h-0">
+	<div class="min-h-0 overflow-hidden" style="height: calc({splitRatio * 100}% - 0.5rem)">
 		<CalendarWeek
 			events={currentWeekEvents}
 			{referenceDate}
@@ -91,8 +163,34 @@
 		/>
 	</div>
 
+	<!-- Resize handle -->
+	<div
+		class="h-4 flex items-center justify-center cursor-row-resize group shrink-0 select-none touch-none"
+		onpointerdown={handlePointerDown}
+		onpointermove={handlePointerMove}
+		onpointerup={handlePointerUp}
+		onpointercancel={handlePointerUp}
+		onkeydown={handleKeyDown}
+		role="slider"
+		aria-label="Resize current week and next week sections"
+		aria-orientation="vertical"
+		aria-valuenow={Math.round(splitRatio * 100)}
+		aria-valuemin={Math.round(MIN_RATIO * 100)}
+		aria-valuemax={Math.round(MAX_RATIO * 100)}
+		tabindex="0"
+	>
+		<div
+			class="w-12 h-1 rounded-full bg-border-light transition-colors {isDragging
+				? 'bg-blue-400'
+				: 'group-hover:bg-border'}"
+		></div>
+	</div>
+
 	<!-- Next week: simplified day cells -->
-	<div class="flex-[1] min-h-0 bg-surface rounded-lg border border-border overflow-hidden">
+	<div
+		class="min-h-0 bg-surface rounded-lg border border-border overflow-hidden"
+		style="height: calc({(1 - splitRatio) * 100}% - 0.5rem)"
+	>
 		<div class="h-full flex flex-col">
 			<!-- Header: "Next Week" -->
 			<div class="shrink-0 px-3 py-2 border-b border-border">
