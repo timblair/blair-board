@@ -86,12 +86,12 @@
 	}
 </script>
 
-<div class="flex flex-col h-full bg-surface rounded-lg border border-border overflow-hidden">
+<div class="flex flex-col h-full bg-surface rounded-lg border-2 border-border overflow-hidden">
 	<!-- Day-of-week headers -->
-	<div class="grid grid-cols-7 border-b border-border shrink-0">
+	<div class="grid grid-cols-7 border-b-2 border-border shrink-0">
 		{#each dayHeaders as header}
 			<div
-				class="text-xs font-semibold text-text-secondary text-center py-2 border-r border-border last:border-r-0"
+				class="text-sm font-bold text-text text-center py-2.5 border-r border-border last:border-r-0"
 			>
 				{header}
 			</div>
@@ -109,21 +109,21 @@
 						style="
 							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
 							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-							top: calc(1.875rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
+							top: calc(2rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
 						"
 					>
 						<div
-							class="text-xs px-1 py-0.5 mx-0.5 rounded truncate cursor-default"
-							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
+							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(
 								event.end
 							)
-								? 0.4
+								? 0.5
 								: 1}"
 							title="{event.allDay
 								? 'All day'
 								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 						>
-							<span class="font-medium">{event.title}</span>
+							<span class="font-semibold">{event.title}</span>
 						</div>
 					</div>
 				{/each}

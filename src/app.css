@@ -4,15 +4,15 @@
 @import '@fontsource/inter/latin-600.css';
 
 @theme {
-	--color-bg: #fafafa;
+	--color-bg: #f0f0f0;
 	--color-surface: #ffffff;
-	--color-text: #1a1a1a;
-	--color-text-secondary: #6b7280;
-	--color-text-tertiary: #9ca3af;
-	--color-border: #e5e7eb;
-	--color-border-light: #f3f4f6;
-	--color-today-bg: #eff6ff;
-	--color-now-line: #ef4444;
+	--color-text: #111111;
+	--color-text-secondary: #374151;
+	--color-text-tertiary: #6b7280;
+	--color-border: #9ca3af;
+	--color-border-light: #d1d5db;
+	--color-today-bg: #dbeafe;
+	--color-now-line: #dc2626;
 
 	--font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
