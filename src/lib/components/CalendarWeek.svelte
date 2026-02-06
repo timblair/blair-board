@@ -11,6 +11,11 @@
 		GRID_END_HOUR,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
+	import {
+		calculateSpans,
+		packSpanningEvents,
+		type PackedSpanningEvent
+	} from '$lib/utils/spanning-events';
 	import DayColumn from './DayColumn.svelte';
 
 	interface Props {
@@ -42,14 +47,15 @@
 		return timedEvents.filter((e) => isSameDay(parseISO(e.start), day));
 	}
 
-	// Get all-day events for a specific day
-	function allDayForDay(day: Date): CalendarEvent[] {
-		return allDayEvents.filter((e) => {
-			const start = parseISO(e.start);
-			const end = parseISO(e.end);
-			return day >= start && day < end;
-		});
-	}
+	// Calculate spanning layout for all-day events
+	const ALL_DAY_ROW_HEIGHT = 1.5; // rem per row
+	let packedAllDayEvents = $derived.by(() => {
+		const spans = calculateSpans(allDayEvents, days);
+		return packSpanningEvents(spans);
+	});
+	let allDayRowCount = $derived(
+		packedAllDayEvents.reduce((max, e) => Math.max(max, e.row + 1), 0)
+	);
 
 	// Time axis labels
 	let timeLabels = $derived(
@@ -70,19 +76,39 @@
 	<!-- All-day events row -->
 	{#if allDayEvents.length > 0}
 		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border shrink-0">
-			<div class="text-xs text-text-tertiary px-1 py-1 text-right">All day</div>
-			{#each days as day (day.toISOString())}
-				<div class="border-l border-border px-1 py-1 space-y-0.5 min-w-0 overflow-hidden">
-					{#each allDayForDay(day) as event (event.id)}
+			<div
+				class="text-xs text-text-tertiary px-1 py-1 text-right"
+				style="height: {allDayRowCount * ALL_DAY_ROW_HEIGHT + 0.5}rem"
+			>
+				All day
+			</div>
+			<div class="col-span-7 relative" style="height: {allDayRowCount * ALL_DAY_ROW_HEIGHT + 0.5}rem">
+				<!-- Day column borders -->
+				<div class="absolute inset-0 grid grid-cols-7">
+					{#each days as day (day.toISOString())}
+						<div class="border-l border-border"></div>
+					{/each}
+				</div>
+				<!-- Spanning event bars -->
+				{#each packedAllDayEvents as { event, startCol, span, row } (event.id)}
+					<div
+						class="absolute pointer-events-auto"
+						style="
+							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
+							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
+							top: {row * ALL_DAY_ROW_HEIGHT + 0.25}rem;
+						"
+					>
 						<div
-							class="text-xs px-1.5 py-0.5 rounded truncate text-white font-medium"
-							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+							class="text-xs px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-medium"
+							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+							title="All day: {event.title}"
 						>
 							{event.title}
 						</div>
-					{/each}
-				</div>
-			{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 
