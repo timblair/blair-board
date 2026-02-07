@@ -147,7 +147,7 @@
 	let spanningEvents = $derived(calculateSpans(classifiedEvents.spanning, nextWeekDays));
 	let packedSpanningEvents = $derived(packSpanningEvents(spanningEvents));
 
-	const SPANNING_ROW_HEIGHT = 2.0; // rem per spanning event row (bar ~1.75rem + 0.25rem gap)
+	const SPANNING_ROW_HEIGHT = 1.625; // rem per spanning event row (matches 4-week/month views)
 </script>
 
 <div class="flex flex-col h-full" bind:this={containerEl}>
@@ -225,7 +225,7 @@
 						"
 					>
 						<div
-							class="text-sm px-1.5 py-1 mx-1 rounded truncate cursor-default flex items-center"
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
 							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 							title="{event.allDay
 								? 'All day'

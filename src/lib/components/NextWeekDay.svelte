@@ -71,14 +71,14 @@
 >
 	<div
 		bind:this={eventsContainerEl}
-		class="flex-1 min-h-0 p-1"
+		class="flex-1 min-h-0 pb-1"
 		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.25rem)"
 	>
-		<div class="flex flex-col gap-1">
+		<div class="flex flex-col gap-0.5">
 			{#each visibleEvents as event (event.id)}
 				<div
 					data-event-chip
-					class="text-sm rounded cursor-default"
+					class="text-sm rounded cursor-default mx-0.5"
 					style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; padding: 4px 6px; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 					title="{event.allDay
 						? 'All day'
