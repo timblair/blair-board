@@ -16,7 +16,7 @@
 
 ## Architecture at a Glance
 
-See `CONTEXT.md` for full details. The short version:
+See [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) for full details. The short version:
 
 - **Server** fetches iCal feeds via `ical.js`, caches raw data in-memory (TTL), expands recurring events per-request using `ICAL.Event.iterator()`, converts timezones, serves via `GET /api/events`
 - **Client** renders from SSR data on first paint, then polls `/api/events` every N minutes. All UI state lives in a `CalendarState` class using Svelte 5 runes. Persists view, hidden calendars, and agenda visibility to localStorage
