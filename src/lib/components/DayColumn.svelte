@@ -6,11 +6,13 @@
 		parseISO,
 		minutesFromMidnight,
 		isEventPast,
+		isToday,
 		GRID_START_HOUR,
 		GRID_END_HOUR
 	} from '$lib/utils/date-helpers';
 
 	interface Props {
+		date: Date;
 		events: CalendarEvent[]; // only timed events for this day
 		timeFormat?: '12h' | '24h';
 		gridStartHour?: number;
@@ -18,6 +20,7 @@
 	}
 
 	let {
+		date,
 		events,
 		timeFormat = '24h',
 		gridStartHour = GRID_START_HOUR,
@@ -117,6 +120,33 @@
 		return () => resizeObserver.disconnect();
 	});
 
+	// Now line: track current time position
+	let showNowLine = $derived(isToday(date));
+	let nowLinePosition = $state(0); // percentage from top
+
+	function updateNowLinePosition() {
+		const now = new Date();
+		const currentMinutes = now.getHours() * 60 + now.getMinutes();
+		const minutesIntoGrid = currentMinutes - gridStartHour * 60;
+
+		// Only show if within grid hours
+		if (minutesIntoGrid >= 0 && minutesIntoGrid <= gridTotalMinutes) {
+			nowLinePosition = (minutesIntoGrid / gridTotalMinutes) * 100;
+		}
+	}
+
+	// Update now line every minute
+	$effect(() => {
+		if (!showNowLine) return;
+
+		updateNowLinePosition();
+
+		// Update every minute
+		const interval = setInterval(updateNowLinePosition, 60000);
+
+		return () => clearInterval(interval);
+	});
+
 	function eventStyle(layout: EventLayout): string {
 		const { event, column, totalColumns } = layout;
 		const startMin = Math.max(minutesFromMidnight(event.start) - gridStartHour * 60, 0);
@@ -207,4 +237,15 @@
 			{/if}
 		</div>
 	{/each}
+
+	<!-- Now line -->
+	{#if showNowLine}
+		<div
+			class="absolute left-0 right-0 pointer-events-none z-20"
+			style="top: {nowLinePosition}%"
+		>
+			<div class="h-0.5 bg-now-line"></div>
+			<div class="absolute -top-1.5 -left-1.5 w-3 h-3 rounded-full bg-now-line"></div>
+		</div>
+	{/if}
 </div>
