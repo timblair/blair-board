@@ -2,6 +2,8 @@
 
 This plan identifies opportunities to reduce duplication, simplify complex patterns, and improve maintainability based on a comprehensive review of the codebase, commit history, and documentation.
 
+**Last updated**: 2025-02-07
+
 ---
 
 ## Summary
@@ -12,66 +14,86 @@ Based on exploration of the codebase, commit history, and documentation, several
 
 ---
 
+## Recent Changes Since Plan Creation
+
+The following changes have been made since the initial plan was created:
+
+1. **Styling updates** (feature/improve-contrast): Updated all event chips to use `text-sm`, `{colour}30` background opacity, `3px` border, and `0.5` opacity for past events
+2. **Consistent spacing** (feature/improve-contrast): Unified 4px gaps between events across all views, `SPANNING_ROW_HEIGHT` now 1.625rem
+3. **Now line feature** (feature/now-line): Added current time indicator to Week and Week+Next views
+4. **Height thresholds** (feature/fix-event-height-thresholds): Two-line format threshold increased to 43px
+5. **Text styling** (feature/unify-text-styling): Times use `text-text-secondary` consistently
+
+The duplication patterns identified below still exist and would benefit from consolidation.
+
+---
+
 ## High Priority
 
-### 1. Create Shared Event Chip Component
+### 1. Create Shared Event Bar Component
 
-**Problem**: Event chip styling is duplicated 7 times across components with identical patterns:
+**Problem**: Event bar styling (the colored background with left border style) is duplicated across calendar view components with identical patterns:
 - `src/lib/components/CalendarMonth.svelte` (spanning bars)
 - `src/lib/components/CalendarWeekNext.svelte` (spanning bars + next week events)
 - `src/lib/components/MonthDay.svelte` (single-day events)
 - `src/lib/components/NextWeekDay.svelte` (single-day events)
-- `src/lib/components/AgendaPanel.svelte` (agenda events)
 - `src/lib/components/DayColumn.svelte` (week view events)
-- `src/lib/components/EventChip.svelte` (currently minimal)
+
+**Note**: `EventChip.svelte` uses a different visual style (dot + text) for the Agenda panel and should remain separate.
 
 **Pattern being duplicated** (~10 lines each):
 ```svelte
 <div
-  class="text-xs px-1 py-0.5 rounded truncate cursor-default"
-  style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+  class="text-sm px-1.5 py-0.5 rounded truncate cursor-default"
+  style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
   title={event.title}
 >
-  <span class="text-text-secondary tabular-nums">{formatTimeRange(...)}</span>
-  <span class="font-medium">{event.title}</span>
+  <span class="text-text-secondary tabular-nums">{formatTimeCompact(...)}</span>
+  <span class="font-semibold">{event.title}</span>
 </div>
 ```
 
-**Solution**: Enhance `EventChip.svelte` as a single source of truth with variants:
+**Solution**: Create `EventBar.svelte` as the shared component for calendar view event chips:
 
 ```svelte
-<!-- src/lib/components/EventChip.svelte -->
+<!-- src/lib/components/EventBar.svelte -->
 <script lang="ts">
   import type { CalendarEvent } from '$lib/types/events';
-  import { formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
+  import { formatTimeCompact, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
 
   interface Props {
     event: CalendarEvent;
     timeFormat?: '12h' | '24h';
-    showTime?: boolean;      // false for all-day or spanning bars
-    variant?: 'default' | 'spanning' | 'compact';
+    showTime?: boolean;           // false for all-day or spanning bars
+    timeStyle?: 'compact' | 'range';  // compact = "14:00", range = "14:00 – 15:00"
+    variant?: 'default' | 'spanning';
   }
 
-  let { event, timeFormat = '24h', showTime = true, variant = 'default' }: Props = $props();
+  let { event, timeFormat = '24h', showTime = true, timeStyle = 'compact', variant = 'default' }: Props = $props();
   let isPast = $derived(isEventPast(event.end));
 </script>
 
 <div
-  class="text-xs px-1 py-0.5 rounded truncate cursor-default"
+  class="text-sm px-1.5 py-0.5 rounded truncate cursor-default"
   class:mx-0.5={variant === 'spanning'}
-  style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isPast ? 0.4 : 1}"
+  style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isPast ? 0.5 : 1}"
   title="{showTime && !event.allDay ? formatTimeRange(event.start, event.end, timeFormat) + ': ' : ''}{event.title}"
 >
   {#if showTime && !event.allDay}
-    <span class="text-text-secondary tabular-nums">{formatTimeRange(event.start, event.end, timeFormat)}</span>
+    <span class="text-text-secondary tabular-nums">
+      {timeStyle === 'range' ? formatTimeRange(event.start, event.end, timeFormat) : formatTimeCompact(event.start, timeFormat)}
+    </span>
   {/if}
-  <span class="font-medium">{event.title}</span>
+  <span class="font-semibold">{event.title}</span>
 </div>
 ```
 
-**Files to update**: All 7 components listed above
+**Files to update**:
+- New: `src/lib/components/EventBar.svelte`
+- Update: `MonthDay.svelte`, `NextWeekDay.svelte`, `CalendarMonth.svelte`, `CalendarWeekNext.svelte`
+- Note: `DayColumn.svelte` has adaptive height logic and may need a specialized variant
 
-**Estimated impact**: Removes ~60 lines of duplicated styling code, centralizes event display logic.
+**Estimated impact**: Removes ~50 lines of duplicated styling code, centralizes event display logic.
 
 ---
 
@@ -87,10 +109,15 @@ Based on exploration of the codebase, commit history, and documentation, several
     style="
       left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
       width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-      top: calc({headerOffset}rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
+      top: {row * SPANNING_ROW_HEIGHT + 0.25}rem;
     "
   >
-    <!-- Event chip content -->
+    <div
+      class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
+      style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+    >
+      <span class="font-semibold">{event.title}</span>
+    </div>
   </div>
 {/each}
 ```
@@ -102,15 +129,15 @@ Based on exploration of the codebase, commit history, and documentation, several
 <script lang="ts">
   import type { PackedSpanningEvent } from '$lib/utils/spanning-events';
   import { SPANNING_ROW_HEIGHT } from '$lib/utils/spanning-events';
-  import EventChip from './EventChip.svelte';
+  import { formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
 
   interface Props {
     packed: PackedSpanningEvent;
-    headerOffset: number;  // rem units for top offset
+    topOffset?: number;  // additional rem offset (e.g., for month view header)
     timeFormat?: '12h' | '24h';
   }
 
-  let { packed, headerOffset, timeFormat = '24h' }: Props = $props();
+  let { packed, topOffset = 0, timeFormat = '24h' }: Props = $props();
   const { event, startCol, span, row } = packed;
 </script>
 
@@ -119,10 +146,16 @@ Based on exploration of the codebase, commit history, and documentation, several
   style="
     left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
     width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-    top: calc({headerOffset}rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
+    top: calc({topOffset}rem + {row * SPANNING_ROW_HEIGHT + 0.25}rem);
   "
 >
-  <EventChip {event} {timeFormat} showTime={false} variant="spanning" />
+  <div
+    class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
+    style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+    title="{event.allDay ? 'All day' : formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
+  >
+    <span class="font-semibold">{event.title}</span>
+  </div>
 </div>
 ```
 
@@ -359,8 +392,8 @@ navigatePrevious() {
 
 Recommended sequence for implementing these refactorings:
 
-1. **EventChip component** (High Priority #1) - Foundation for other changes
-2. **SpanningEventBar component** (High Priority #2) - Depends on EventChip
+1. **EventBar component** (High Priority #1) - Foundation for other changes
+2. **SpanningEventBar component** (High Priority #2) - Uses EventBar
 3. **ensureDate helper** (Medium Priority #5) - Quick win, minimal risk
 4. **getSingleDayEventsForDay** (Medium Priority #6) - Quick win
 5. **Visibility calculator** (High Priority #3) - More complex, isolated change
@@ -378,14 +411,18 @@ After each refactoring, verify:
 1. **TypeScript**: Run `pnpm check` for type errors
 2. **Visual inspection**: Check all four views (Week, Week+Next, 4-Week, Month)
 3. **Spanning events**: Verify events span correctly across columns and week boundaries
-4. **Past events**: Confirm 40% opacity on past events
+4. **Past events**: Confirm 50% opacity on past events
 5. **Overflow**: Verify "+X more" works in month/4-week views
-6. **Persistence**: Check localStorage (view selection, hidden calendars, agenda visibility)
-7. **Edge cases**:
-   - All-day events
-   - Multi-day events crossing week boundaries
-   - Days with many events
-   - Different time formats (12h/24h)
+6. **Now line**: Verify red time indicator appears on today's column (Week/Week+Next views)
+7. **Persistence**: Check localStorage (view selection, hidden calendars, agenda visibility)
+8. **Adaptive height**: Verify events switch to single-line format at 43px threshold
+9. **Spacing**: Confirm 4px gaps between all event types
+10. **Edge cases**:
+    - All-day events
+    - Multi-day events crossing week boundaries
+    - Days with many events
+    - Different time formats (12h/24h)
+    - Events shorter than 30 minutes (single-line format)
 
 ---
 
