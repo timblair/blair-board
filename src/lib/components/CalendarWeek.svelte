@@ -153,7 +153,8 @@
 					{/each}
 
 					<DayColumn
-						events={eventsForDay(day)}
+						date={day}
+					events={eventsForDay(day)}
 						{timeFormat}
 						{gridStartHour}
 						{gridEndHour}
