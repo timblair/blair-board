@@ -201,7 +201,7 @@
 			{:else}
 				<!-- Two-line format for longer events: title on line 1, time range on line 2 -->
 				<div class="font-semibold truncate">{layout.event.title}</div>
-				<div class="text-text truncate tabular-nums">
+				<div class="text-text-secondary truncate tabular-nums">
 					{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
 				</div>
 			{/if}
