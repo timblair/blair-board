@@ -94,7 +94,7 @@
 			{/each}
 
 			{#if overflowCount > 0}
-				<div class="text-sm text-text font-semibold px-1">+{overflowCount} more</div>
+				<div class="text-sm text-text px-1">+{overflowCount} more</div>
 			{/if}
 		</div>
 	</div>
