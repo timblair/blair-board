@@ -184,7 +184,7 @@
 		paddingStyle: string;
 		textStyle: string;
 	} {
-		if (pixelHeight >= 32) {
+		if (pixelHeight >= 43) {
 			// Normal: two lines with standard padding
 			return { singleLine: false, paddingStyle: '', textStyle: '' };
 		} else if (pixelHeight >= 20) {
