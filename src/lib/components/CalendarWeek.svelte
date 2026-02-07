@@ -72,12 +72,12 @@
 
 </script>
 
-<div class="flex flex-col h-full bg-surface rounded-lg border border-border overflow-hidden">
+<div class="flex flex-col h-full bg-surface rounded-lg border-2 border-border overflow-hidden">
 	<!-- All-day events row -->
 	{#if allDayEvents.length > 0}
-		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border shrink-0">
+		<div class="grid grid-cols-[4rem_repeat(7,1fr)] border-b-2 border-border shrink-0">
 			<div
-				class="text-xs text-text-tertiary px-1 py-1 text-right"
+				class="text-sm font-medium text-text-secondary px-1 py-1 text-right"
 				style="height: {allDayRowCount * ALL_DAY_ROW_HEIGHT + 0.5}rem"
 			>
 				All day
@@ -100,8 +100,8 @@
 						"
 					>
 						<div
-							class="text-xs px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-medium"
-							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-semibold"
+							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 							title="All day: {event.title}"
 						>
 							{event.title}
@@ -113,13 +113,13 @@
 	{/if}
 
 	<!-- Day headers -->
-	<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border shrink-0">
+	<div class="grid grid-cols-[4rem_repeat(7,1fr)] border-b-2 border-border shrink-0">
 		<div class=""></div>
 		{#each days as day (day.toISOString())}
 			<div
-				class="text-center py-2 text-sm font-medium border-l border-border {isToday(day)
-					? 'text-blue-600 bg-today-bg'
-					: 'text-text-secondary'}"
+				class="text-center py-1.5 text-base font-semibold border-l border-border {isToday(day)
+					? 'text-blue-700 bg-today-bg'
+					: 'text-text'}"
 			>
 				{formatDayHeader(day)}
 			</div>
@@ -128,12 +128,12 @@
 
 	<!-- Time grid -->
 	<div class="flex-1 min-h-0">
-		<div class="grid grid-cols-[3.5rem_repeat(7,1fr)] relative h-full">
+		<div class="grid grid-cols-[4rem_repeat(7,1fr)] relative h-full">
 			<!-- Time axis -->
 			<div class="relative">
 				{#each timeLabels as label, i}
 					<div
-						class="absolute right-2 text-xs text-text-tertiary tabular-nums"
+						class="absolute right-2 text-sm font-medium text-text-secondary tabular-nums"
 						style="top: {(i / timeLabels.length) * 100}%"
 					>
 						{label}

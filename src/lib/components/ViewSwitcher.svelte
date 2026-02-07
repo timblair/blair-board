@@ -16,12 +16,12 @@
 	];
 </script>
 
-<div class="flex rounded-lg border border-border bg-surface overflow-hidden">
+<div class="flex rounded-lg border-2 border-border bg-surface overflow-hidden">
 	{#each views as view (view.value)}
 		<button
-			class="px-3 py-1.5 text-sm font-medium transition-colors {currentView === view.value
+			class="px-4 py-2 text-base font-semibold transition-colors {currentView === view.value
 				? 'bg-text text-surface'
-				: 'text-text-secondary hover:text-text'}"
+				: 'text-text hover:bg-border-light'}"
 			onclick={() => onchange(view.value)}
 		>
 			{view.label}

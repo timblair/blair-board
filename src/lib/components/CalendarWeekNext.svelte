@@ -147,7 +147,7 @@
 	let spanningEvents = $derived(calculateSpans(classifiedEvents.spanning, nextWeekDays));
 	let packedSpanningEvents = $derived(packSpanningEvents(spanningEvents));
 
-	const SPANNING_ROW_HEIGHT = 1.75; // rem per spanning event row (slightly larger for week+next view)
+	const SPANNING_ROW_HEIGHT = 1.625; // rem per spanning event row (matches 4-week/month views)
 </script>
 
 <div class="flex flex-col h-full" bind:this={containerEl}>
@@ -188,13 +188,13 @@
 
 	<!-- Next week: simplified day cells -->
 	<div
-		class="min-h-0 bg-surface rounded-lg border border-border overflow-hidden"
+		class="min-h-0 bg-surface rounded-lg border-2 border-border overflow-hidden"
 		style="height: calc({(1 - splitRatio) * 100}% - 0.5rem)"
 	>
 		<div class="h-full flex flex-col">
 			<!-- Header: "Next Week" -->
-			<div class="shrink-0 px-3 py-2 border-b border-border">
-				<h3 class="text-sm font-medium text-text-secondary">Next Week</h3>
+			<div class="shrink-0 px-3 py-2 border-b-2 border-border">
+				<h3 class="text-base font-bold text-text">Next Week</h3>
 			</div>
 
 			<!-- Day headers -->
@@ -202,9 +202,9 @@
 				{#each nextWeekDays as day (day.toISOString())}
 					{@const today = isToday(day)}
 					<div
-						class="border-l first:border-l-0 border-border text-center py-1.5 text-xs font-medium {today
-							? 'text-blue-600 bg-today-bg'
-							: 'text-text-secondary'}"
+						class="border-l first:border-l-0 border-border text-center py-2 text-sm font-semibold {today
+							? 'text-blue-700 bg-today-bg'
+							: 'text-text'}"
 					>
 						{formatDayHeader(day)}
 					</div>
@@ -225,13 +225,13 @@
 						"
 					>
 						<div
-							class="text-xs px-1 py-1 mx-1 rounded truncate cursor-default flex items-center"
-							style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
+							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 							title="{event.allDay
 								? 'All day'
 								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 						>
-							<span class="font-medium">{event.title}</span>
+							<span class="font-semibold">{event.title}</span>
 						</div>
 					</div>
 				{/each}

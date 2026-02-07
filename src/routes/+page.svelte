@@ -46,10 +46,10 @@
 
 <div class="h-screen flex flex-col bg-bg">
 	<!-- Header -->
-	<header class="relative shrink-0 px-4 py-3 bg-surface border-b border-border">
+	<header class="relative shrink-0 px-4 py-3 bg-surface border-b-2 border-border">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-4">
-				<h1 class="text-xl font-semibold">Blair Board</h1>
+				<h1 class="text-2xl font-bold">Blair Board</h1>
 				<DateNavigation
 					label={cal.periodLabel}
 					onprevious={() => cal.navigatePrevious()}

@@ -71,20 +71,20 @@
 >
 	<div
 		bind:this={eventsContainerEl}
-		class="flex-1 min-h-0 p-1"
+		class="flex-1 min-h-0 pb-1"
 		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.25rem)"
 	>
-		<div class="flex flex-col gap-1">
+		<div class="flex flex-col gap-0.5">
 			{#each visibleEvents as event (event.id)}
 				<div
 					data-event-chip
-					class="text-xs rounded cursor-default"
-					style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; padding: 4px 4px; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+					class="text-sm rounded cursor-default mx-0.5"
+					style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; padding: 4px 6px; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 					title="{event.allDay
 						? 'All day'
 						: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 				>
-					<div class="font-medium truncate leading-tight">{event.title}</div>
+					<div class="font-semibold truncate leading-tight">{event.title}</div>
 					{#if !event.allDay}
 						<div class="text-text-secondary tabular-nums leading-tight mt-0.5">
 							{formatTimeRange(event.start, event.end, timeFormat)}
@@ -94,7 +94,7 @@
 			{/each}
 
 			{#if overflowCount > 0}
-				<div class="text-xs text-text-secondary px-1 font-medium">+{overflowCount} more</div>
+				<div class="text-sm text-text font-semibold px-1">+{overflowCount} more</div>
 			{/if}
 		</div>
 	</div>

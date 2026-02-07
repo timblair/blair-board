@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday, formatTime, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
+	import { isToday, formatTimeCompact, isEventPast } from '$lib/utils/date-helpers';
 	import { format } from 'date-fns';
 
 	interface Props {
@@ -83,13 +83,13 @@
 		: 'bg-bg'}"
 >
 	<!-- Day number header - fixed height for consistent alignment -->
-	<div class="h-6 mb-0.5">
+	<div class="h-7 mb-0.5">
 		<div
-			class="text-xs font-medium {today
-				? 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center'
+			class="text-sm font-bold {today
+				? 'w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center'
 				: isCurrentMonth
-					? 'text-text px-1 leading-6'
-					: 'text-text-tertiary px-1 leading-6'}"
+					? 'text-text px-1 leading-7'
+					: 'text-text-secondary px-1 leading-7'}"
 		>
 			{dayNumber}
 		</div>
@@ -98,25 +98,25 @@
 	<div
 		bind:this={eventsContainerEl}
 		class="space-y-0.5"
-		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.125rem)"
+		style="padding-top: calc({spanRows * spanningRowHeight}rem)"
 	>
 		{#each visibleEvents as event (event.id)}
 			<div
 				data-event-chip
-				class="text-xs px-1 py-0.5 rounded truncate cursor-default"
-				style="background-color: {event.colour}20; border-left: 2px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.4 : 1}"
+				class="text-sm px-1.5 py-0.5 rounded truncate cursor-default"
+				style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 				title={event.title}
 			>
 				{#if !event.allDay}
-					<span class="text-text-secondary tabular-nums">{formatTimeRange(event.start, event.end, timeFormat)}</span
+					<span class="text-text-secondary tabular-nums">{formatTimeCompact(event.start, timeFormat)}</span
 					>
 				{/if}
-				<span class="font-medium">{event.title}</span>
+				<span class="font-semibold">{event.title}</span>
 			</div>
 		{/each}
 
 		{#if overflowCount > 0}
-			<div class="text-xs text-text-secondary px-1 font-medium">+{overflowCount} more</div>
+			<div class="text-sm text-text font-semibold px-1">+{overflowCount} more</div>
 		{/if}
 	</div>
 </div>

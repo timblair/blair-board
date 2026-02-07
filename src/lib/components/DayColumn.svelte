@@ -130,10 +130,10 @@
 		const widthPercent = (100 / totalColumns) - 0.5; // small gap between events
 		const leftPercent = (column / totalColumns) * 100 + 0.25; // offset for gap
 
-		const opacity = isEventPast(event.end) ? 0.4 : 1;
+		const opacity = isEventPast(event.end) ? 0.5 : 1;
 		// Box shadow to cover hour grid lines behind the event
 		const boxShadow = `0 0 0 2px var(--color-surface, #ffffff)`;
-		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}20; border-left: 2px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
+		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}30; border-left: 3px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
 	}
 
 	// Calculate pixel height for an event
@@ -186,22 +186,22 @@
 		{@const pixelHeight = getEventPixelHeight(layout.event)}
 		{@const styling = getCompactStyling(pixelHeight)}
 		<div
-			class="absolute px-1.5 py-0.5 rounded text-xs overflow-hidden cursor-default hover:shadow-sm transition-shadow"
+			class="absolute px-1.5 py-0.5 rounded text-sm overflow-hidden cursor-default hover:shadow-sm transition-shadow"
 			style="{eventStyle(layout)} {styling.paddingStyle}"
 			title="{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}: {layout.event.title}"
 		>
 			{#if styling.singleLine}
 				<!-- Single-line format for short events: title + start time only -->
-				<div class="font-medium truncate" style={styling.textStyle}>
+				<div class="font-semibold truncate" style={styling.textStyle}>
 					{layout.event.title}
-					<span class="text-text-secondary tabular-nums ml-1"
+					<span class="text-text-secondary font-normal tabular-nums ml-1"
 						>{formatTimeCompact(layout.event.start, timeFormat)}</span
 					>
 				</div>
 			{:else}
 				<!-- Two-line format for longer events: title on line 1, time range on line 2 -->
-				<div class="font-medium truncate">{layout.event.title}</div>
-				<div class="text-text-secondary truncate tabular-nums">
+				<div class="font-semibold truncate">{layout.event.title}</div>
+				<div class="text-text truncate tabular-nums">
 					{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
 				</div>
 			{/if}

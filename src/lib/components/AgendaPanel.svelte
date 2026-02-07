@@ -55,17 +55,17 @@
 	});
 </script>
 
-<aside class="flex flex-col h-full bg-surface border-l border-border">
-	<div class="px-4 py-3 border-b border-border flex items-center justify-between">
-		<h2 class="text-sm font-semibold text-text-secondary uppercase tracking-wider">Schedule</h2>
+<aside class="flex flex-col h-full bg-surface border-l-2 border-border">
+	<div class="px-4 py-3 border-b-2 border-border flex items-center justify-between">
+		<h2 class="text-base font-bold text-text uppercase tracking-wider">Schedule</h2>
 		{#if onclose}
 			<button
 				class="p-1 rounded hover:bg-border-light transition-colors"
 				onclick={onclose}
 				title="Hide schedule"
 			>
-				<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				<svg class="w-5 h-5 text-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
 				</svg>
 			</button>
 		{/if}
@@ -73,13 +73,13 @@
 
 	<div class="flex-1 overflow-y-auto">
 		{#each groupedEvents as group (group.date.toISOString())}
-			<div class="px-4 py-3">
-				<h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+			<div class="px-4 py-3 border-b border-border-light">
+				<h3 class="text-sm font-bold text-text uppercase tracking-wider mb-2">
 					{group.label}
 				</h3>
 
 				{#if group.events.length === 0}
-					<p class="text-sm text-text-tertiary italic">No events</p>
+					<p class="text-base text-text-secondary italic">No events</p>
 				{:else}
 					<div class="space-y-2">
 						{#each group.events as event (event.id)}
