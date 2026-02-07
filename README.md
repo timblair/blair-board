@@ -136,7 +136,13 @@ src/
     └── utils/                    # Date helpers, spanning event logic
 ```
 
-See [CONTEXT.md](CONTEXT.md) for detailed architecture documentation.
+## Documentation
+
+- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)** — Complete technical documentation covering architecture, implementation, and design decisions
+- **[Development Guide](docs/CLAUDE.md)** — Code conventions and development workflow
+- **[Refactoring Plan](docs/REFACTORING_PLAN.md)** — Identified opportunities for code improvements
+
+See [docs/](docs/) for all project documentation.
 
 ## Scripts
 
