@@ -134,6 +134,6 @@ export function getSpanningRowCount(packedEvents: PackedSpanningEvent[], dayInde
 
 /**
  * Height of each spanning event row in rem.
- * Slightly tighter than Week+Next's 1.75rem for denser month/4-week views.
+ * Bar is ~1.5rem tall, plus 0.125rem (2px) gap for consistent 4px spacing.
  */
-export const SPANNING_ROW_HEIGHT = 1.5;
+export const SPANNING_ROW_HEIGHT = 1.625;

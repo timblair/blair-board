@@ -98,7 +98,7 @@
 	<div
 		bind:this={eventsContainerEl}
 		class="space-y-0.5"
-		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.125rem)"
+		style="padding-top: calc({spanRows * spanningRowHeight}rem)"
 	>
 		{#each visibleEvents as event (event.id)}
 			<div
