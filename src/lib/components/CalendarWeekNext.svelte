@@ -147,7 +147,7 @@
 	let spanningEvents = $derived(calculateSpans(classifiedEvents.spanning, nextWeekDays));
 	let packedSpanningEvents = $derived(packSpanningEvents(spanningEvents));
 
-	const SPANNING_ROW_HEIGHT = 1.75; // rem per spanning event row (slightly larger for week+next view)
+	const SPANNING_ROW_HEIGHT = 2.0; // rem per spanning event row (bar ~1.75rem + 0.25rem gap)
 </script>
 
 <div class="flex flex-col h-full" bind:this={containerEl}>
