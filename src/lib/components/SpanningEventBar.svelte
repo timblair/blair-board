@@ -17,7 +17,7 @@
 	class="absolute pointer-events-auto z-10"
 	style="
 		left: calc({packed.startCol} / 7 * 100% + {packed.startCol === 0 ? 0 : 1}px);
-		width: calc({packed.span} / 7 * 100% - {packed.startCol === 0 ? 1 : 2}px);
+		width: calc({packed.span} / 7 * 100% - {packed.startCol === 0 ? 0 : 1}px);
 		top: calc({topOffset}rem + {packed.row * rowHeight + 0.25}rem);
 	"
 >

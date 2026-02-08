@@ -7,7 +7,6 @@
 		timeFormat?: '12h' | '24h';
 		showTime?: boolean; // false for all-day or spanning bars
 		timeStyle?: 'compact' | 'range'; // compact = "14:00", range = "14:00 – 15:00"
-		variant?: 'default' | 'spanning'; // spanning adds mx-0.5
 		layout?: 'inline' | 'stacked'; // inline = time + title on same line, stacked = title then time on separate lines
 	}
 
@@ -16,7 +15,6 @@
 		timeFormat = '24h',
 		showTime = true,
 		timeStyle = 'compact',
-		variant = 'default',
 		layout = 'inline'
 	}: Props = $props();
 
@@ -25,7 +23,6 @@
 
 <div
 	class="text-sm px-1.5 py-0.5 rounded cursor-default text-white"
-	class:mx-0.5={variant === 'spanning'}
 	class:truncate={layout === 'inline'}
 	style="background-color: {event.colour}; opacity: {isPast ? 0.5 : 1}"
 	title="{showTime && !event.allDay

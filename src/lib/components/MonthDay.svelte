@@ -98,7 +98,7 @@
 
 	<div
 		bind:this={eventsContainerEl}
-		class="space-y-0.5"
+		class="space-y-0.5 px-0.5"
 		style="padding-top: calc({spanRows * spanningRowHeight}rem)"
 	>
 		{#each visibleEvents as event (event.id)}
@@ -108,7 +108,7 @@
 		{/each}
 
 		{#if overflowCount > 0}
-			<div class="text-sm text-text font-semibold px-1">+{overflowCount} more</div>
+			<div class="text-sm text-text font-semibold">+{overflowCount} more</div>
 		{/if}
 	</div>
 </div>

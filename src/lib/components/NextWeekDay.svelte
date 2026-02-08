@@ -75,15 +75,15 @@
 		class="flex-1 min-h-0 pb-1"
 		style="padding-top: calc({spanRows * spanningRowHeight}rem + 0.25rem)"
 	>
-		<div class="flex flex-col gap-0.5">
+		<div class="flex flex-col gap-0.5 px-0.5">
 			{#each visibleEvents as event (event.id)}
 				<div data-event-chip>
-					<EventBar {event} {timeFormat} showTime={!event.allDay} variant="spanning" layout="stacked" />
+					<EventBar {event} {timeFormat} showTime={!event.allDay} layout="stacked" />
 				</div>
 			{/each}
 
 			{#if overflowCount > 0}
-				<div class="text-sm text-text px-1">+{overflowCount} more</div>
+				<div class="text-sm text-text">+{overflowCount} more</div>
 			{/if}
 		</div>
 	</div>
