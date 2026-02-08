@@ -82,7 +82,7 @@
 	let containerClasses = $derived(
 		variant === 'next-week'
 			? `border-l first:border-l-0 border-border flex flex-col min-h-0 overflow-hidden ${today ? 'bg-today-bg' : ''}`
-			: `min-h-[5rem] border-b border-r border-border flex flex-col overflow-hidden ${isCurrentMonth ? 'bg-surface' : 'bg-bg'}`
+			: `min-h-[5rem] border-l first:border-l-0 border-b border-border flex flex-col overflow-hidden ${isCurrentMonth ? 'bg-surface' : 'bg-bg'}`
 	);
 
 	let paddingTopStyle = $derived(`calc(${spanRows * spanningRowHeight}rem + 0.25rem)`);
