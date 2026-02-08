@@ -20,7 +20,7 @@
 		getSpanningRowCount
 	} from '$lib/utils/spanning-events';
 	import CalendarWeek from './CalendarWeek.svelte';
-	import NextWeekDay from './NextWeekDay.svelte';
+	import DayCell from './DayCell.svelte';
 	import SpanningEventBar from './SpanningEventBar.svelte';
 
 	interface Props {
@@ -222,12 +222,13 @@
 					{#each nextWeekDays as day, dayIndex (day.toISOString())}
 						{@const dayEvents = singleDayEventsForDay(day)}
 						{@const spanRows = getSpanningRowCount(packedSpanningEvents, dayIndex)}
-						<NextWeekDay
-							{day}
+						<DayCell
+							date={day}
 							events={dayEvents}
 							{spanRows}
 							spanningRowHeight={SPANNING_ROW_HEIGHT}
 							{timeFormat}
+							variant="next-week"
 						/>
 					{/each}
 				</div>

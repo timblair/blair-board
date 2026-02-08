@@ -7,19 +7,21 @@
 	interface Props {
 		date: Date;
 		events: CalendarEvent[];
-		isCurrentMonth: boolean;
+		spanRows: number;
+		spanningRowHeight: number;
 		timeFormat?: '12h' | '24h';
-		spanRows?: number;
-		spanningRowHeight?: number;
+		variant?: 'next-week' | 'month';
+		isCurrentMonth?: boolean; // Only used for month variant
 	}
 
 	let {
 		date,
 		events,
-		isCurrentMonth,
+		spanRows,
+		spanningRowHeight,
 		timeFormat = '24h',
-		spanRows = 0,
-		spanningRowHeight = 1.5
+		variant = 'next-week',
+		isCurrentMonth = true
 	}: Props = $props();
 
 	let today = $derived(isToday(date));
@@ -36,17 +38,18 @@
 
 		const updateVisibility = () => {
 			const containerHeight = containerEl!.clientHeight;
-			const headerHeight = 30; // Day number header: h-6 (24px) + mb-0.5 (2px) + padding (4px)
+			const headerHeight = variant === 'month' ? 30 : 0; // Day number header: h-7 (28px) + mb-0.5 (2px)
 			const moreIndicatorHeight = 20; // "+X more" indicator height
 			const spanningHeight = spanRows * spanningRowHeight * 16; // Convert rem to px (assuming 16px base)
-			const available = containerHeight - headerHeight - spanningHeight;
+			const paddingBottom = 4; // pb-1 = 0.25rem = 4px
+			const paddingTop = variant === 'next-week' ? 4 : 0; // Extra 0.25rem for next-week variant
+			const available =
+				containerHeight - headerHeight - spanningHeight - paddingBottom - paddingTop;
 
 			// Measure actual event chip height from first event or estimate
 			const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
-			const eventHeight =
-				eventChips.length > 0 ? eventChips[0].getBoundingClientRect().height + 2 : 22; // +2 for spacing
+			const eventHeight = eventChips.length > 0 ? eventChips[0].getBoundingClientRect().height + 4 : 24; // +4 for gap-0.5
 
-			// Calculate how many events can fit
 			if (events.length === 0) {
 				maxVisible = 0;
 				return;
@@ -75,40 +78,52 @@
 
 	let visibleEvents = $derived(events.slice(0, maxVisible));
 	let overflowCount = $derived(Math.max(0, events.length - maxVisible));
+
+	// Variant-specific classes
+	let containerClasses = $derived(
+		variant === 'next-week'
+			? `border-l first:border-l-0 border-border flex flex-col min-h-0 overflow-hidden ${today ? 'bg-today-bg' : ''}`
+			: `min-h-[5rem] border-b border-r border-border flex flex-col overflow-hidden ${isCurrentMonth ? 'bg-surface' : 'bg-bg'}`
+	);
+
+	let paddingTopStyle = $derived(
+		variant === 'next-week'
+			? `calc(${spanRows * spanningRowHeight}rem + 0.25rem)`
+			: `calc(${spanRows * spanningRowHeight}rem)`
+	);
 </script>
 
-<div
-	bind:this={containerEl}
-	class="min-h-[5rem] p-1 border-b border-r border-border overflow-hidden {isCurrentMonth
-		? 'bg-surface'
-		: 'bg-bg'}"
->
-	<!-- Day number header - fixed height for consistent alignment -->
-	<div class="h-7 mb-0.5">
-		<div
-			class="text-sm font-bold {today
-				? 'w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center'
-				: isCurrentMonth
-					? 'text-text px-1 leading-7'
-					: 'text-text-secondary px-1 leading-7'}"
-		>
-			{dayNumber}
+<div bind:this={containerEl} class={containerClasses}>
+	{#if variant === 'month'}
+		<!-- Day number header - only for month variant -->
+		<div class="h-7 mb-0.5 px-1">
+			<div
+				class="text-sm font-bold {today
+					? 'w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center'
+					: isCurrentMonth
+						? 'text-text leading-7'
+						: 'text-text-secondary leading-7'}"
+			>
+				{dayNumber}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<div
 		bind:this={eventsContainerEl}
-		class="space-y-0.5 px-0.5"
-		style="padding-top: calc({spanRows * spanningRowHeight}rem)"
+		class="flex-1 min-h-0 pb-1"
+		style="padding-top: {paddingTopStyle}"
 	>
-		{#each visibleEvents as event (event.id)}
-			<div data-event-chip>
-				<EventBar {event} {timeFormat} showTime={!event.allDay} />
-			</div>
-		{/each}
+		<div class="flex flex-col gap-0.5 px-0.5">
+			{#each visibleEvents as event (event.id)}
+				<div data-event-chip>
+					<EventBar {event} {timeFormat} showTime={!event.allDay} layout="stacked" />
+				</div>
+			{/each}
 
-		{#if overflowCount > 0}
-			<div class="text-sm text-text font-semibold">+{overflowCount} more</div>
-		{/if}
+			{#if overflowCount > 0}
+				<div class="text-sm text-text">+{overflowCount} more</div>
+			{/if}
+		</div>
 	</div>
 </div>

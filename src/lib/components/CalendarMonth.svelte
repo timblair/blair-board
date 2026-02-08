@@ -17,7 +17,7 @@
 		type PackedSpanningEvent
 	} from '$lib/utils/spanning-events';
 	import { isSameMonth } from 'date-fns';
-	import MonthDay from './MonthDay.svelte';
+	import DayCell from './DayCell.svelte';
 	import SpanningEventBar from './SpanningEventBar.svelte';
 
 	interface Props {
@@ -111,13 +111,14 @@
 					{#each week.days as day, dayIndex (day.toISOString())}
 						{@const spanRows = getSpanningRowCount(week.packedEvents, dayIndex)}
 						{@const dayEvents = singleDayEventsForDay(week.singleDayEvents, day)}
-						<MonthDay
+						<DayCell
 							date={day}
 							events={dayEvents}
 							isCurrentMonth={isSameMonth(day, referenceDate)}
 							{timeFormat}
 							{spanRows}
 							spanningRowHeight={SPANNING_ROW_HEIGHT}
+							variant="month"
 						/>
 					{/each}
 				</div>
