@@ -103,7 +103,7 @@
 			<div class="flex-1 relative min-h-0 border-b border-border last:border-b-0">
 				<!-- Spanning event bars (absolutely positioned) -->
 				{#each week.packedEvents as packed (packed.event.id)}
-					<SpanningEventBar {packed} topOffset={2} {timeFormat} />
+					<SpanningEventBar {packed} topOffset={1.875} {timeFormat} />
 				{/each}
 
 				<!-- Day cells -->

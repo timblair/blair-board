@@ -42,9 +42,8 @@
 			const moreIndicatorHeight = 20; // "+X more" indicator height
 			const spanningHeight = spanRows * spanningRowHeight * 16; // Convert rem to px (assuming 16px base)
 			const paddingBottom = 4; // pb-1 = 0.25rem = 4px
-			const paddingTop = variant === 'next-week' ? 4 : 0; // Extra 0.25rem for next-week variant
-			const available =
-				containerHeight - headerHeight - spanningHeight - paddingBottom - paddingTop;
+			const paddingTop = 4; // 0.25rem for both variants
+			const available = containerHeight - headerHeight - spanningHeight - paddingBottom - paddingTop;
 
 			// Measure actual event chip height from first event or estimate
 			const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
@@ -86,11 +85,7 @@
 			: `min-h-[5rem] border-b border-r border-border flex flex-col overflow-hidden ${isCurrentMonth ? 'bg-surface' : 'bg-bg'}`
 	);
 
-	let paddingTopStyle = $derived(
-		variant === 'next-week'
-			? `calc(${spanRows * spanningRowHeight}rem + 0.25rem)`
-			: `calc(${spanRows * spanningRowHeight}rem)`
-	);
+	let paddingTopStyle = $derived(`calc(${spanRows * spanningRowHeight}rem + 0.25rem)`);
 </script>
 
 <div bind:this={containerEl} class={containerClasses}>
