@@ -129,8 +129,12 @@
 		const currentMinutes = now.getHours() * 60 + now.getMinutes();
 		const minutesIntoGrid = currentMinutes - gridStartHour * 60;
 
-		// Only show if within grid hours
-		if (minutesIntoGrid >= 0 && minutesIntoGrid <= gridTotalMinutes) {
+		// Clamp to 0-100% range: top if before grid start, bottom if after grid end
+		if (minutesIntoGrid < 0) {
+			nowLinePosition = 0;
+		} else if (minutesIntoGrid > gridTotalMinutes) {
+			nowLinePosition = 100;
+		} else {
 			nowLinePosition = (minutesIntoGrid / gridTotalMinutes) * 100;
 		}
 	}
