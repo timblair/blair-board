@@ -5,8 +5,6 @@
 		startOfDay,
 		endOfDay,
 		parseISO,
-		formatTimeRange,
-		isEventPast,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
 	import {
@@ -19,7 +17,8 @@
 		type PackedSpanningEvent
 	} from '$lib/utils/spanning-events';
 	import { isSameMonth } from 'date-fns';
-	import MonthDay from './MonthDay.svelte';
+	import DayCell from './DayCell.svelte';
+	import SpanningEventBar from './SpanningEventBar.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
@@ -103,29 +102,8 @@
 		{#each weekData as week, weekIndex (weekIndex)}
 			<div class="flex-1 relative min-h-0 border-b border-border last:border-b-0">
 				<!-- Spanning event bars (absolutely positioned) -->
-				{#each week.packedEvents as { event, startCol, span, row } (event.id)}
-					<div
-						class="absolute pointer-events-auto z-10"
-						style="
-							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
-							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-							top: calc(2rem + {row * SPANNING_ROW_HEIGHT}rem + 0.125rem);
-						"
-					>
-						<div
-							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default text-white"
-							style="background-color: {event.colour}; opacity: {isEventPast(
-								event.end
-							)
-								? 0.5
-								: 1}"
-							title="{event.allDay
-								? 'All day'
-								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
-						>
-							<span class="font-semibold">{event.title}</span>
-						</div>
-					</div>
+				{#each week.packedEvents as packed (packed.event.id)}
+					<SpanningEventBar {packed} topOffset={1.875} {timeFormat} />
 				{/each}
 
 				<!-- Day cells -->
@@ -133,13 +111,14 @@
 					{#each week.days as day, dayIndex (day.toISOString())}
 						{@const spanRows = getSpanningRowCount(week.packedEvents, dayIndex)}
 						{@const dayEvents = singleDayEventsForDay(week.singleDayEvents, day)}
-						<MonthDay
+						<DayCell
 							date={day}
 							events={dayEvents}
 							isCurrentMonth={isSameMonth(day, referenceDate)}
 							{timeFormat}
 							{spanRows}
 							spanningRowHeight={SPANNING_ROW_HEIGHT}
+							variant="month"
 						/>
 					{/each}
 				</div>

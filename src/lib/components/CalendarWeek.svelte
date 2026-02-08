@@ -6,7 +6,6 @@
 		parseISO,
 		isToday,
 		formatDayHeader,
-		isEventPast,
 		GRID_START_HOUR,
 		GRID_END_HOUR,
 		type WeekStartsOn
@@ -17,6 +16,7 @@
 		type PackedSpanningEvent
 	} from '$lib/utils/spanning-events';
 	import DayColumn from './DayColumn.svelte';
+	import SpanningEventBar from './SpanningEventBar.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
@@ -90,23 +90,8 @@
 					{/each}
 				</div>
 				<!-- Spanning event bars -->
-				{#each packedAllDayEvents as { event, startCol, span, row } (event.id)}
-					<div
-						class="absolute pointer-events-auto"
-						style="
-							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
-							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-							top: {row * ALL_DAY_ROW_HEIGHT + 0.25}rem;
-						"
-					>
-						<div
-							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-semibold text-white"
-							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
-							title="All day: {event.title}"
-						>
-							{event.title}
-						</div>
-					</div>
+				{#each packedAllDayEvents as packed (packed.event.id)}
+					<SpanningEventBar {packed} rowHeight={ALL_DAY_ROW_HEIGHT} {timeFormat} />
 				{/each}
 			</div>
 		</div>
