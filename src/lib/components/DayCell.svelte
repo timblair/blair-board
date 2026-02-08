@@ -112,7 +112,12 @@
 		<div class="flex flex-col gap-0.5 px-0.5">
 			{#each visibleEvents as event (event.id)}
 				<div data-event-chip>
-					<EventBar {event} {timeFormat} showTime={!event.allDay} layout="stacked" />
+					<EventBar
+						{event}
+						{timeFormat}
+						showTime={!event.allDay}
+						layout={variant === 'next-week' ? 'stacked' : 'inline'}
+					/>
 				</div>
 			{/each}
 
