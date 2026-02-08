@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday, formatTimeCompact, isEventPast } from '$lib/utils/date-helpers';
+	import { isToday } from '$lib/utils/date-helpers';
 	import { format } from 'date-fns';
+	import EventBar from './EventBar.svelte';
 
 	interface Props {
 		date: Date;
@@ -101,17 +102,8 @@
 		style="padding-top: calc({spanRows * spanningRowHeight}rem)"
 	>
 		{#each visibleEvents as event (event.id)}
-			<div
-				data-event-chip
-				class="text-sm px-1.5 py-0.5 rounded truncate cursor-default text-white"
-				style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
-				title={event.title}
-			>
-				{#if !event.allDay}
-					<span class="tabular-nums opacity-90">{formatTimeCompact(event.start, timeFormat)}</span
-					>
-				{/if}
-				<span class="font-semibold">{event.title}</span>
+			<div data-event-chip>
+				<EventBar {event} {timeFormat} showTime={!event.allDay} />
 			</div>
 		{/each}
 

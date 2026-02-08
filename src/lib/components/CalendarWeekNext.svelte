@@ -10,8 +10,6 @@
 		parseISO,
 		isToday,
 		formatDayHeader,
-		formatTimeRange,
-		isEventPast,
 		type WeekStartsOn
 	} from '$lib/utils/date-helpers';
 	import {
@@ -23,6 +21,7 @@
 	} from '$lib/utils/spanning-events';
 	import CalendarWeek from './CalendarWeek.svelte';
 	import NextWeekDay from './NextWeekDay.svelte';
+	import SpanningEventBar from './SpanningEventBar.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
@@ -214,26 +213,8 @@
 			<!-- Event area -->
 			<div class="flex-1 relative min-h-0">
 				<!-- Spanning event bars (absolutely positioned) -->
-				{#each packedSpanningEvents as { event, startCol, span, row } (event.id)}
-					<div
-						class="absolute pointer-events-auto"
-						style="
-							left: calc({startCol} / 7 * 100% + {startCol === 0 ? 0 : 1}px);
-							width: calc({span} / 7 * 100% - {startCol === 0 ? 1 : 2}px);
-							top: {row * SPANNING_ROW_HEIGHT + 0.25}rem;
-							z-index: 10;
-						"
-					>
-						<div
-							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default text-white"
-							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
-							title="{event.allDay
-								? 'All day'
-								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
-						>
-							<span class="font-semibold">{event.title}</span>
-						</div>
-					</div>
+				{#each packedSpanningEvents as packed (packed.event.id)}
+					<SpanningEventBar {packed} rowHeight={SPANNING_ROW_HEIGHT} {timeFormat} />
 				{/each}
 
 				<!-- Day columns -->

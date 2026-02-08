@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
 	import { isToday, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
+	import EventBar from './EventBar.svelte';
 
 	interface Props {
 		day: Date;
