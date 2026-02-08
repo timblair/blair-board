@@ -103,12 +103,12 @@
 		{#each visibleEvents as event (event.id)}
 			<div
 				data-event-chip
-				class="text-sm px-1.5 py-0.5 rounded truncate cursor-default"
-				style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+				class="text-sm px-1.5 py-0.5 rounded truncate cursor-default text-white"
+				style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 				title={event.title}
 			>
 				{#if !event.allDay}
-					<span class="text-text-secondary tabular-nums">{formatTimeCompact(event.start, timeFormat)}</span
+					<span class="tabular-nums opacity-90">{formatTimeCompact(event.start, timeFormat)}</span
 					>
 				{/if}
 				<span class="font-semibold">{event.title}</span>

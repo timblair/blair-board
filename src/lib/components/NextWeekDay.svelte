@@ -78,15 +78,15 @@
 			{#each visibleEvents as event (event.id)}
 				<div
 					data-event-chip
-					class="text-sm rounded cursor-default mx-0.5"
-					style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; padding: 4px 6px; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+					class="text-sm rounded cursor-default mx-0.5 text-white"
+					style="background-color: {event.colour}; padding: 4px 6px; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 					title="{event.allDay
 						? 'All day'
 						: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
 				>
 					<div class="font-semibold truncate leading-tight">{event.title}</div>
 					{#if !event.allDay}
-						<div class="text-text-secondary tabular-nums leading-tight mt-0.5">
+						<div class="tabular-nums leading-tight mt-0.5 opacity-90">
 							{formatTimeRange(event.start, event.end, timeFormat)}
 						</div>
 					{/if}

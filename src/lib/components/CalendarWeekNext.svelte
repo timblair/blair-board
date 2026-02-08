@@ -225,8 +225,8 @@
 						"
 					>
 						<div
-							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default"
-							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default text-white"
+							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 							title="{event.allDay
 								? 'All day'
 								: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"

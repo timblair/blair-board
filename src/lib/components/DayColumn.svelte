@@ -163,7 +163,7 @@
 		const opacity = isEventPast(event.end) ? 0.5 : 1;
 		// Box shadow to cover hour grid lines behind the event
 		const boxShadow = `0 0 0 2px var(--color-surface, #ffffff)`;
-		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}30; border-left: 3px solid ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
+		return `top: ${top}%; height: ${height}%; left: ${leftPercent}%; width: ${widthPercent}%; background-color: ${event.colour}; opacity: ${opacity}; box-shadow: ${boxShadow};`;
 	}
 
 	// Calculate pixel height for an event
@@ -216,7 +216,7 @@
 		{@const pixelHeight = getEventPixelHeight(layout.event)}
 		{@const styling = getCompactStyling(pixelHeight)}
 		<div
-			class="absolute px-1.5 py-0.5 rounded text-sm overflow-hidden cursor-default hover:shadow-sm transition-shadow"
+			class="absolute px-1.5 py-0.5 rounded text-sm overflow-hidden cursor-default hover:shadow-sm transition-shadow text-white"
 			style="{eventStyle(layout)} {styling.paddingStyle}"
 			title="{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}: {layout.event.title}"
 		>
@@ -224,14 +224,14 @@
 				<!-- Single-line format for short events: title + start time only -->
 				<div class="font-semibold truncate" style={styling.textStyle}>
 					{layout.event.title}
-					<span class="text-text-secondary font-normal tabular-nums ml-1"
+					<span class="font-normal tabular-nums ml-1 opacity-90"
 						>{formatTimeCompact(layout.event.start, timeFormat)}</span
 					>
 				</div>
 			{:else}
 				<!-- Two-line format for longer events: title on line 1, time range on line 2 -->
 				<div class="font-semibold truncate">{layout.event.title}</div>
-				<div class="text-text-secondary truncate tabular-nums">
+				<div class="truncate tabular-nums opacity-90">
 					{formatTimeRange(layout.event.start, layout.event.end, timeFormat)}
 				</div>
 			{/if}

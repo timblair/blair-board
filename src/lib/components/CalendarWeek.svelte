@@ -100,8 +100,8 @@
 						"
 					>
 						<div
-							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-semibold"
-							style="background-color: {event.colour}30; border-left: 3px solid {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
+							class="text-sm px-1.5 py-0.5 mx-0.5 rounded truncate cursor-default font-semibold text-white"
+							style="background-color: {event.colour}; opacity: {isEventPast(event.end) ? 0.5 : 1}"
 							title="All day: {event.title}"
 						>
 							{event.title}
