@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday, formatTimeRange, isEventPast } from '$lib/utils/date-helpers';
+	import { isToday } from '$lib/utils/date-helpers';
 	import EventBar from './EventBar.svelte';
 
 	interface Props {
@@ -77,20 +77,8 @@
 	>
 		<div class="flex flex-col gap-0.5">
 			{#each visibleEvents as event (event.id)}
-				<div
-					data-event-chip
-					class="text-sm rounded cursor-default mx-0.5 text-white"
-					style="background-color: {event.colour}; padding: 4px 6px; opacity: {isEventPast(event.end) ? 0.5 : 1}"
-					title="{event.allDay
-						? 'All day'
-						: formatTimeRange(event.start, event.end, timeFormat)}: {event.title}"
-				>
-					<div class="font-semibold truncate leading-tight">{event.title}</div>
-					{#if !event.allDay}
-						<div class="tabular-nums leading-tight mt-0.5 opacity-90">
-							{formatTimeRange(event.start, event.end, timeFormat)}
-						</div>
-					{/if}
+				<div data-event-chip>
+					<EventBar {event} {timeFormat} showTime={!event.allDay} variant="spanning" layout="stacked" />
 				</div>
 			{/each}
 
