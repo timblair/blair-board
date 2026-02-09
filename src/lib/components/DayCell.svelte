@@ -45,25 +45,62 @@
 			const paddingTop = 4; // 0.25rem for both variants
 			const available = containerHeight - headerHeight - spanningHeight - paddingBottom - paddingTop;
 
-			// Measure actual event chip height from first event or estimate
-			const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
-			const eventHeight = eventChips.length > 0 ? eventChips[0].getBoundingClientRect().height + 4 : 24; // +4 for gap-0.5
-
 			if (events.length === 0) {
 				maxVisible = 0;
 				return;
 			}
 
-			// Try to fit all events first
-			const allEventsHeight = events.length * eventHeight;
-			if (allEventsHeight <= available) {
-				maxVisible = events.length;
-				return;
-			}
+			// Calculate how many events can fit based on their actual heights
+			if (variant === 'next-week') {
+				// Next week has mixed heights: all-day ~24px, timed ~42px
+				// Calculate cumulative height for each event
+				let cumulativeHeight = 0;
+				let count = 0;
 
-			// Calculate max that can fit with "+X more" indicator
-			const maxWithIndicator = Math.floor((available - moreIndicatorHeight) / eventHeight);
-			maxVisible = Math.max(1, maxWithIndicator);
+				for (const event of events) {
+					const eventHeight = event.allDay ? 24 : 42; // single-line vs two-line
+					if (cumulativeHeight + eventHeight <= available) {
+						cumulativeHeight += eventHeight;
+						count++;
+					} else {
+						break;
+					}
+				}
+
+				// If not all fit, check if we can show some with "+X more" indicator
+				if (count < events.length) {
+					cumulativeHeight = 0;
+					count = 0;
+					const availableWithIndicator = available - moreIndicatorHeight;
+
+					for (const event of events) {
+						const eventHeight = event.allDay ? 24 : 42;
+						if (cumulativeHeight + eventHeight <= availableWithIndicator) {
+							cumulativeHeight += eventHeight;
+							count++;
+						} else {
+							break;
+						}
+					}
+					maxVisible = Math.max(1, count);
+				} else {
+					maxVisible = count;
+				}
+			} else {
+				// Month view: consistent inline layout, measure actual height
+				const eventChips = eventsContainerEl!.querySelectorAll('[data-event-chip]');
+				const eventHeight = eventChips.length > 0 ? eventChips[0].getBoundingClientRect().height + 4 : 24; // +4 for gap-0.5
+
+				// Try to fit all events first
+				const allEventsHeight = events.length * eventHeight;
+				if (allEventsHeight <= available) {
+					maxVisible = events.length;
+				} else {
+					// Calculate max that can fit with "+X more" indicator
+					const maxWithIndicator = Math.floor((available - moreIndicatorHeight) / eventHeight);
+					maxVisible = Math.max(1, maxWithIndicator);
+				}
+			}
 		};
 
 		updateVisibility();
