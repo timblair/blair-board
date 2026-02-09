@@ -12,13 +12,22 @@ export interface PackedSpanningEvent extends SpanningEvent {
 }
 
 /**
- * Check if an event is a multi-day or all-day event that should be rendered as a spanning bar.
+ * Check if an event is a multi-day event that should be rendered as a spanning bar.
+ * Single-day all-day events are NOT considered spanning - they're rendered in the day cell.
  */
 export function isSpanningEvent(event: CalendarEvent): boolean {
 	const start = startOfDay(parseISO(event.start));
 	const end = startOfDay(parseISO(event.end));
-	// Multi-day (end is on a different day than start) or all-day
-	return end > start || event.allDay;
+	const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+
+	// Single-day all-day events have a 1-day difference due to exclusive DTEND (RFC 5545)
+	// e.g., all-day event on Feb 10 has DTSTART=Feb 10, DTEND=Feb 11
+	if (event.allDay && daysDiff === 1) {
+		return false;
+	}
+
+	// Multi-day events (including multi-day all-day events)
+	return end > start;
 }
 
 /**
@@ -37,7 +46,8 @@ export function getEventsForWeek(events: CalendarEvent[], weekDays: Date[]): Cal
 }
 
 /**
- * Classify events for a week into spanning (multi-day/all-day) and single-day timed events.
+ * Classify events for a week into spanning (multi-day) and single-day events.
+ * Single-day events include both timed events and single-day all-day events.
  */
 export function classifyWeekEvents(events: CalendarEvent[]): {
 	spanning: CalendarEvent[];
@@ -58,7 +68,7 @@ export function classifyWeekEvents(events: CalendarEvent[]): {
 }
 
 /**
- * Calculate column spans for multi-day/all-day events within a week.
+ * Calculate column spans for multi-day events within a week.
  * Events starting before the week start at column 0.
  * Events ending after the week extend to column 7 (full span).
  */
