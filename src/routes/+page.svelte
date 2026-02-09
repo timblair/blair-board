@@ -43,6 +43,93 @@
 			cal.fetchEvents();
 		}
 	});
+
+	// Screen Wake Lock - prevent device from sleeping
+	let wakeLockEnabled = $state(false);
+	let wakeLock: WakeLockSentinel | null = $state(null);
+	let wakeLockSupported = $state(false);
+
+	// Load wake lock preference and check support
+	onMount(() => {
+		// Check if Wake Lock API is supported
+		wakeLockSupported = 'wakeLock' in navigator;
+
+		// Load preference if supported
+		if (wakeLockSupported) {
+			try {
+				const stored = localStorage.getItem('blair-board-wake-lock');
+				if (stored === 'true') {
+					wakeLockEnabled = true;
+				}
+			} catch (e) {
+				console.warn('Failed to load wake lock preference:', e);
+			}
+		}
+	});
+
+	// Acquire or release wake lock when enabled state changes
+	$effect(() => {
+		if (!wakeLockEnabled) {
+			// Release wake lock if disabled
+			if (wakeLock) {
+				wakeLock.release();
+				wakeLock = null;
+			}
+			return;
+		}
+
+		// Acquire wake lock if enabled and not already held
+		if ('wakeLock' in navigator && !wakeLock) {
+			navigator.wakeLock
+				.request('screen')
+				.then((sentinel) => {
+					wakeLock = sentinel;
+
+					// Re-acquire on release (e.g., after visibility change)
+					sentinel.addEventListener('release', () => {
+						wakeLock = null;
+						// Re-acquire if still enabled
+						if (wakeLockEnabled && document.visibilityState === 'visible') {
+							navigator.wakeLock.request('screen').then((s) => {
+								wakeLock = s;
+							});
+						}
+					});
+				})
+				.catch((err) => {
+					console.error('Wake lock request failed:', err);
+				});
+		}
+	});
+
+	// Re-acquire wake lock when page becomes visible
+	onMount(() => {
+		const handleVisibilityChange = () => {
+			if (wakeLockEnabled && document.visibilityState === 'visible' && !wakeLock) {
+				navigator.wakeLock
+					.request('screen')
+					.then((sentinel) => {
+						wakeLock = sentinel;
+					})
+					.catch((err) => {
+						console.error('Wake lock request failed:', err);
+					});
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+	});
+
+	function toggleWakeLock() {
+		wakeLockEnabled = !wakeLockEnabled;
+		// Persist preference
+		try {
+			localStorage.setItem('blair-board-wake-lock', String(wakeLockEnabled));
+		} catch (e) {
+			console.warn('Failed to persist wake lock preference:', e);
+		}
+	}
 </script>
 
 <div class="h-screen flex flex-col bg-bg">
@@ -136,6 +223,9 @@
 					timeFormat={cal.config?.display.timeFormat}
 					agendaDays={cal.config?.display.agendaDays}
 					onclose={() => cal.toggleAgenda()}
+					{wakeLockEnabled}
+					{wakeLockSupported}
+					ontoggleWakeLock={toggleWakeLock}
 				/>
 			</div>
 		{:else}

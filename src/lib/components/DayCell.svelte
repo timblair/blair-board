@@ -200,11 +200,11 @@
 
 			{#if overflowData}
 				<div class="text-sm text-text-secondary" style="opacity: {isPast ? 0.5 : 1}">
-					{#if overflowData.type === 'single'}
+					{#if overflowData.type === 'single' && overflowData.calendar}
 						+{overflowData.count} in <span style="color: {overflowData.calendar.colour}">{overflowData.calendar.name}</span>
-					{:else if overflowData.type === 'double'}
+					{:else if overflowData.type === 'double' && overflowData.calendars}
 						+{overflowData.count} in <span style="color: {overflowData.calendars[0].colour}">{overflowData.calendars[0].name}</span> and <span style="color: {overflowData.calendars[1].colour}">{overflowData.calendars[1].name}</span>
-					{:else}
+					{:else if overflowData.type === 'count'}
 						+{overflowData.count} in {overflowData.calendarCount} calendars
 					{/if}
 				</div>
