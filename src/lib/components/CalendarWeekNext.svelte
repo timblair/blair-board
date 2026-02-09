@@ -214,7 +214,7 @@
 			<div class="flex-1 relative min-h-0">
 				<!-- Spanning event bars (absolutely positioned) -->
 				{#each packedSpanningEvents as packed (packed.event.id)}
-					<SpanningEventBar {packed} rowHeight={SPANNING_ROW_HEIGHT} {timeFormat} />
+					<SpanningEventBar {packed} rowHeight={SPANNING_ROW_HEIGHT} {timeFormat} includeBasePadding={true} />
 				{/each}
 
 				<!-- Day columns -->
