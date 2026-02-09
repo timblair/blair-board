@@ -62,7 +62,7 @@ export function getViewRange(
 		};
 	}
 	if (view === '4week') return get4WeekRange(date, weekStartsOn);
-	return getMonthRange(date);
+	return getMonthGridRange(date, weekStartsOn);
 }
 
 export function formatTime(date: Date | string, timeFormat: '12h' | '24h'): string {
@@ -170,6 +170,18 @@ export function get4WeekGridDays(date: Date, weekStartsOn: WeekStartsOn): Date[]
 }
 
 /** Returns an array of dates for all day cells in the month grid (includes padding days) */
+export function getMonthGridRange(
+	date: Date,
+	weekStartsOn: WeekStartsOn
+): { start: Date; end: Date } {
+	const monthStart = startOfMonth(date);
+	const gridStart = startOfDay(startOfWeek(monthStart, { weekStartsOn }));
+	const monthEnd = endOfMonth(date);
+	const gridEnd = endOfDay(endOfWeek(monthEnd, { weekStartsOn }));
+
+	return { start: gridStart, end: gridEnd };
+}
+
 export function getMonthGridDays(date: Date, weekStartsOn: WeekStartsOn): Date[] {
 	const monthStart = startOfMonth(date);
 	const gridStart = startOfWeek(monthStart, { weekStartsOn });
