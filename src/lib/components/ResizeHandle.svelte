@@ -1,25 +1,29 @@
 <script lang="ts">
 	interface Props {
-		onresize: (deltaX: number) => void;
+		orientation: 'horizontal' | 'vertical';
+		onresize: (delta: number) => void;
+		ariaLabel?: string;
+		onkeydown?: (e: KeyboardEvent) => void;
 	}
 
-	let { onresize }: Props = $props();
+	let { orientation, onresize, ariaLabel = 'Resize', onkeydown }: Props = $props();
 
 	let isDragging = $state(false);
-	let startX = $state(0);
+	let startPos = $state(0);
 
 	function handlePointerDown(e: PointerEvent) {
 		isDragging = true;
-		startX = e.clientX;
+		startPos = orientation === 'horizontal' ? e.clientY : e.clientX;
 		(e.target as HTMLElement).setPointerCapture(e.pointerId);
 	}
 
 	function handlePointerMove(e: PointerEvent) {
 		if (!isDragging) return;
 
-		const deltaX = startX - e.clientX;
-		startX = e.clientX;
-		onresize(deltaX);
+		const currentPos = orientation === 'horizontal' ? e.clientY : e.clientX;
+		const delta = startPos - currentPos;
+		startPos = currentPos;
+		onresize(delta);
 	}
 
 	function handlePointerUp(e: PointerEvent) {
@@ -27,20 +31,29 @@
 		isDragging = false;
 		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
 	}
+
+	let isHorizontal = $derived(orientation === 'horizontal');
+	let containerClass = $derived(
+		isHorizontal
+			? 'h-4 flex items-center justify-center cursor-row-resize group shrink-0 select-none touch-none'
+			: 'w-4 flex items-center justify-center cursor-col-resize group shrink-0 select-none touch-none'
+	);
+	let pillClass = $derived(isHorizontal ? 'w-12 h-1' : 'w-1 h-12');
 </script>
 
 <div
-	class="w-4 flex items-center justify-center cursor-col-resize group shrink-0 select-none touch-none"
+	class={containerClass}
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
 	onpointerup={handlePointerUp}
 	onpointercancel={handlePointerUp}
+	onkeydown={onkeydown}
 	role="button"
-	aria-label="Resize sidebar"
+	aria-label={ariaLabel}
 	tabindex="0"
 >
 	<div
-		class="w-1 h-12 rounded-full bg-border-light transition-colors {isDragging
+		class="{pillClass} rounded-full bg-border-light transition-colors {isDragging
 			? 'bg-blue-400'
 			: 'group-hover:bg-border'}"
 	></div>

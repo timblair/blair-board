@@ -125,7 +125,11 @@
 
 		<!-- Agenda sidebar -->
 		{#if cal.agendaVisible}
-			<ResizeHandle onresize={(deltaX) => cal.setAgendaWidth(cal.agendaWidth + deltaX)} />
+			<ResizeHandle
+				orientation="vertical"
+				onresize={(delta) => cal.setAgendaWidth(cal.agendaWidth + delta)}
+				ariaLabel="Resize sidebar"
+			/>
 			<div class="shrink-0 hidden md:block" style="width: {cal.agendaWidth}px">
 				<AgendaPanel
 					events={cal.agendaEvents}
