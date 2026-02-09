@@ -8,9 +8,10 @@
 		topOffset?: number; // additional rem offset (e.g., for month view header: 2rem)
 		rowHeight?: number; // row height in rem (defaults to SPANNING_ROW_HEIGHT)
 		timeFormat?: '12h' | '24h';
+		includeBasePadding?: boolean; // whether to add 0.125rem base padding (for next-week view)
 	}
 
-	let { packed, topOffset = 0, rowHeight = SPANNING_ROW_HEIGHT, timeFormat = '24h' }: Props = $props();
+	let { packed, topOffset = 0, rowHeight = SPANNING_ROW_HEIGHT, timeFormat = '24h', includeBasePadding = false }: Props = $props();
 </script>
 
 <div
@@ -18,7 +19,7 @@
 	style="
 		left: calc({packed.startCol} / 7 * 100% + {packed.startCol === 0 ? 0 : 1}px);
 		width: calc({packed.span} / 7 * 100% - {packed.startCol === 0 ? 0 : 1}px);
-		top: calc({topOffset}rem + {packed.row * rowHeight + 0.25}rem);
+		top: calc({topOffset}rem + {packed.row * rowHeight}rem{includeBasePadding ? ' + 0.125rem' : ''});
 	"
 >
 	<div

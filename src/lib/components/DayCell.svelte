@@ -42,7 +42,7 @@
 			const moreIndicatorHeight = 20; // "+X more" indicator height
 			const spanningHeight = spanRows * spanningRowHeight * 16; // Convert rem to px (assuming 16px base)
 			const paddingBottom = 4; // pb-1 = 0.25rem = 4px
-			const paddingTop = 4; // 0.25rem for both variants
+			const paddingTop = variant === 'next-week' ? 2 : 0; // 0.125rem for next-week, none for month
 			const available = containerHeight - headerHeight - spanningHeight - paddingBottom - paddingTop;
 
 			if (events.length === 0) {
@@ -98,7 +98,14 @@
 				} else {
 					// Calculate max that can fit with "+X more" indicator
 					const maxWithIndicator = Math.floor((available - moreIndicatorHeight) / eventHeight);
-					maxVisible = Math.max(1, maxWithIndicator);
+					const overflow = events.length - maxWithIndicator;
+
+					// If we're only hiding 1 event, just show all events instead
+					if (overflow <= 1) {
+						maxVisible = events.length;
+					} else {
+						maxVisible = Math.max(1, maxWithIndicator);
+					}
 				}
 			}
 		};
@@ -122,7 +129,11 @@
 			: `min-h-[5rem] border-l first:border-l-0 border-b border-border flex flex-col overflow-hidden ${isCurrentMonth ? 'bg-surface' : 'bg-bg'}`
 	);
 
-	let paddingTopStyle = $derived(`calc(${spanRows * spanningRowHeight}rem + 0.25rem)`);
+	let paddingTopStyle = $derived(
+	variant === 'next-week'
+		? `calc(${spanRows * spanningRowHeight}rem + 0.125rem)`
+		: `calc(${spanRows * spanningRowHeight}rem)`
+);
 </script>
 
 <div bind:this={containerEl} class={containerClasses}>

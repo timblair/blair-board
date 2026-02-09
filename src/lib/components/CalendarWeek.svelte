@@ -91,7 +91,7 @@
 				</div>
 				<!-- Spanning event bars -->
 				{#each packedAllDayEvents as packed (packed.event.id)}
-					<SpanningEventBar {packed} rowHeight={ALL_DAY_ROW_HEIGHT} {timeFormat} />
+					<SpanningEventBar {packed} rowHeight={ALL_DAY_ROW_HEIGHT} {timeFormat} includeBasePadding={true} />
 				{/each}
 			</div>
 		</div>
