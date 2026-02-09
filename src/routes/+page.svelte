@@ -49,22 +49,9 @@
 	let wakeLock: WakeLockSentinel | null = $state(null);
 	let wakeLockSupported = $state(false);
 
-	// Load wake lock preference and check support
+	// Check if Wake Lock API is supported
 	onMount(() => {
-		// Check if Wake Lock API is supported
 		wakeLockSupported = 'wakeLock' in navigator;
-
-		// Load preference if supported
-		if (wakeLockSupported) {
-			try {
-				const stored = localStorage.getItem('blair-board-wake-lock');
-				if (stored === 'true') {
-					wakeLockEnabled = true;
-				}
-			} catch (e) {
-				console.warn('Failed to load wake lock preference:', e);
-			}
-		}
 	});
 
 	// Acquire or release wake lock when enabled state changes
@@ -123,12 +110,6 @@
 
 	function toggleWakeLock() {
 		wakeLockEnabled = !wakeLockEnabled;
-		// Persist preference
-		try {
-			localStorage.setItem('blair-board-wake-lock', String(wakeLockEnabled));
-		} catch (e) {
-			console.warn('Failed to persist wake lock preference:', e);
-		}
 	}
 </script>
 
