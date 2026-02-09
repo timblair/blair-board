@@ -10,9 +10,10 @@ A family kitchen dashboard that displays multiple calendars from iCal feeds in a
   - **4 Week** — four-week overview grid
   - **Month** — traditional monthly grid
 - **Spanning multi-day events** — multi-day and all-day events render as horizontal bars across day columns
-- **Agenda sidebar** — today + tomorrow events (collapsible)
+- **Agenda sidebar** — today + tomorrow events (collapsible, resizable)
 - **Multiple calendars** with colour coding (Google Calendar, Apple/iCloud, Outlook, etc.)
 - **Calendar visibility toggle** — click legend items to show/hide individual calendars
+- **Wake Lock support** — "Keep Awake" toggle prevents screen dimming (requires HTTPS)
 - **Auto-refresh** via configurable polling interval
 - **Server-side rendering** for instant first paint
 - **View persistence** — remembers your last selected view
@@ -44,7 +45,11 @@ Edit `config.json` with your calendar iCal URLs. To get an iCal URL:
 - **Apple/iCloud**: Calendar app > Right-click calendar > Share > Public Calendar > copy URL
 - **Outlook**: Calendar settings > Shared calendars > Publish > ICS link
 
-### Development
+### Running the App
+
+#### Development Mode (with hot reload)
+
+For local development with automatic code reloading:
 
 ```sh
 pnpm dev
@@ -52,11 +57,38 @@ pnpm dev
 
 Open http://localhost:5173 in a browser.
 
-### Production
+To access from other devices on your network (e.g., iPad):
+
+```sh
+pnpm dev --host
+```
+
+Then access via `http://YOUR_LOCAL_IP:5173` from other devices.
+
+**Note:** Wake Lock API requires HTTPS, so the "Keep Awake" toggle won't appear in dev mode.
+
+#### Production Mode with HTTPS
+
+For full testing with Wake Lock API support over your local network:
 
 ```sh
 pnpm build
-node build/index.js
+pnpm start
+```
+
+The server will be available at:
+- **Local**: `https://localhost:3000`
+- **Network**: `https://YOUR_LOCAL_IP:3000` (e.g., from iPad)
+
+**First-time setup:** You'll need to generate SSL certificates with `mkcert`. See [HTTPS_SETUP.md](HTTPS_SETUP.md) for details.
+
+#### Production Mode (HTTP fallback)
+
+If you don't need HTTPS:
+
+```sh
+pnpm build
+pnpm start:http
 ```
 
 The server listens on port 3000 by default. Set the `PORT` environment variable to change it.
@@ -148,7 +180,9 @@ See [docs/](docs/) for all project documentation.
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start development server |
+| `pnpm dev` | Start development server (HTTP, hot reload) |
+| `pnpm dev --host` | Dev server accessible on local network |
 | `pnpm build` | Production build |
-| `pnpm preview` | Preview production build locally |
+| `pnpm start` | Start production server (HTTPS) |
+| `pnpm start:http` | Start production server (HTTP fallback) |
 | `pnpm check` | TypeScript and Svelte type checking |
