@@ -12,7 +12,10 @@
 
 - **Always work in feature branches** — never commit directly to main
 - Create branches with descriptive names (e.g., `feature/spanning-events`, `fix/alignment-issue`)
-- Merge to main only after user approval
+- **Do not commit changes until explicitly instructed by the user** — wait for the user to say "commit"
+- **Do not merge branches until explicitly instructed by the user** — wait for the user to say "merge"
+- Only create commits when the user requests them
+- Only merge to main after user approval
 
 ## Architecture at a Glance
 
