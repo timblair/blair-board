@@ -22,6 +22,7 @@
 	import CalendarWeek from './CalendarWeek.svelte';
 	import DayCell from './DayCell.svelte';
 	import SpanningEventBar from './SpanningEventBar.svelte';
+	import ResizeHandle from './ResizeHandle.svelte';
 
 	interface Props {
 		events: CalendarEvent[];
@@ -48,7 +49,6 @@
 	const MAX_RATIO = 0.85;
 
 	let splitRatio = $state(DEFAULT_RATIO);
-	let isDragging = $state(false);
 	let containerEl: HTMLDivElement | undefined = $state();
 
 	// Load saved ratio from localStorage
@@ -64,24 +64,14 @@
 		}
 	});
 
-	function handlePointerDown(e: PointerEvent) {
-		isDragging = true;
-		(e.target as HTMLElement).setPointerCapture(e.pointerId);
-	}
+	function handleResize(deltaPixels: number) {
+		if (!containerEl) return;
 
-	function handlePointerMove(e: PointerEvent) {
-		if (!isDragging || !containerEl) return;
-
-		const rect = containerEl.getBoundingClientRect();
-		const y = e.clientY - rect.top;
-		const ratio = Math.max(MIN_RATIO, Math.min(MAX_RATIO, y / rect.height));
-		splitRatio = ratio;
-	}
-
-	function handlePointerUp(e: PointerEvent) {
-		if (!isDragging) return;
-		isDragging = false;
-		(e.target as HTMLElement).releasePointerCapture(e.pointerId);
+		// Convert pixel delta to ratio delta
+		const containerHeight = containerEl.getBoundingClientRect().height;
+		const deltaRatio = -deltaPixels / containerHeight; // Negative because delta is inverted
+		const newRatio = Math.max(MIN_RATIO, Math.min(MAX_RATIO, splitRatio + deltaRatio));
+		splitRatio = newRatio;
 
 		// Persist to localStorage
 		if (browser) {
@@ -163,27 +153,12 @@
 	</div>
 
 	<!-- Resize handle -->
-	<div
-		class="h-4 flex items-center justify-center cursor-row-resize group shrink-0 select-none touch-none"
-		onpointerdown={handlePointerDown}
-		onpointermove={handlePointerMove}
-		onpointerup={handlePointerUp}
-		onpointercancel={handlePointerUp}
+	<ResizeHandle
+		orientation="horizontal"
+		onresize={handleResize}
 		onkeydown={handleKeyDown}
-		role="slider"
-		aria-label="Resize current week and next week sections"
-		aria-orientation="vertical"
-		aria-valuenow={Math.round(splitRatio * 100)}
-		aria-valuemin={Math.round(MIN_RATIO * 100)}
-		aria-valuemax={Math.round(MAX_RATIO * 100)}
-		tabindex="0"
-	>
-		<div
-			class="w-12 h-1 rounded-full bg-border-light transition-colors {isDragging
-				? 'bg-blue-400'
-				: 'group-hover:bg-border'}"
-		></div>
-	</div>
+		ariaLabel="Resize current week and next week sections"
+	/>
 
 	<!-- Next week: simplified day cells -->
 	<div

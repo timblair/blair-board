@@ -65,7 +65,7 @@
 				title="Hide schedule"
 			>
 				<svg class="w-5 h-5 text-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M6 5l7 7-7 7" />
 				</svg>
 			</button>
 		{/if}

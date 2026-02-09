@@ -9,6 +9,7 @@
 	import CalendarLegend from '$lib/components/CalendarLegend.svelte';
 	import ViewSwitcher from '$lib/components/ViewSwitcher.svelte';
 	import DateNavigation from '$lib/components/DateNavigation.svelte';
+	import ResizeHandle from '$lib/components/ResizeHandle.svelte';
 
 	let { data } = $props();
 
@@ -85,7 +86,7 @@
 	<!-- Main content -->
 	<div class="flex-1 flex min-h-0">
 		<!-- Calendar view -->
-		<main class="flex-1 p-4 min-w-0 overflow-hidden">
+		<main class="flex-1 {cal.agendaVisible ? 'pt-4 pb-4 pl-4 pr-0' : 'p-4'} min-w-0 overflow-hidden">
 			{#if cal.currentView === 'week'}
 				<CalendarWeek
 					events={cal.calendarViewEvents}
@@ -124,7 +125,12 @@
 
 		<!-- Agenda sidebar -->
 		{#if cal.agendaVisible}
-			<div class="w-72 shrink-0 hidden md:block">
+			<ResizeHandle
+				orientation="vertical"
+				onresize={(delta) => cal.setAgendaWidth(cal.agendaWidth + delta)}
+				ariaLabel="Resize sidebar"
+			/>
+			<div class="shrink-0 hidden md:block" style="width: {cal.agendaWidth}px">
 				<AgendaPanel
 					events={cal.agendaEvents}
 					timeFormat={cal.config?.display.timeFormat}

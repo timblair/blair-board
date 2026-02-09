@@ -17,6 +17,11 @@ import {
 const VIEW_STORAGE_KEY = 'blair-board-current-view';
 const HIDDEN_CALENDARS_KEY = 'blair-board-hidden-calendars';
 const AGENDA_VISIBLE_KEY = 'blair-board-agenda-visible';
+const AGENDA_WIDTH_KEY = 'blair-board-agenda-width';
+
+const DEFAULT_AGENDA_WIDTH = 288; // 18rem = 288px
+const MIN_AGENDA_WIDTH = 200;
+const MAX_AGENDA_WIDTH = 600;
 
 export class CalendarState {
 	events = $state<CalendarEvent[]>([]);
@@ -27,6 +32,7 @@ export class CalendarState {
 	config = $state<ClientConfig | null>(null);
 	hiddenCalendarIds = $state<Set<string>>(this.loadHiddenCalendars());
 	agendaVisible = $state<boolean>(this.loadAgendaVisible());
+	agendaWidth = $state<number>(this.loadAgendaWidth());
 
 	private loadPersistedView(): CalendarView {
 		if (typeof window === 'undefined') return 'week';
@@ -91,6 +97,31 @@ export class CalendarState {
 			localStorage.setItem(AGENDA_VISIBLE_KEY, String(this.agendaVisible));
 		} catch (e) {
 			console.warn('Failed to persist agenda visibility:', e);
+		}
+	}
+
+	private loadAgendaWidth(): number {
+		if (typeof window === 'undefined') return DEFAULT_AGENDA_WIDTH;
+		try {
+			const stored = localStorage.getItem(AGENDA_WIDTH_KEY);
+			if (stored) {
+				const width = parseInt(stored, 10);
+				if (!isNaN(width) && width >= MIN_AGENDA_WIDTH && width <= MAX_AGENDA_WIDTH) {
+					return width;
+				}
+			}
+		} catch (e) {
+			console.warn('Failed to load agenda width:', e);
+		}
+		return DEFAULT_AGENDA_WIDTH;
+	}
+
+	private persistAgendaWidth(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(AGENDA_WIDTH_KEY, String(this.agendaWidth));
+		} catch (e) {
+			console.warn('Failed to persist agenda width:', e);
 		}
 	}
 
@@ -211,5 +242,11 @@ export class CalendarState {
 	toggleAgenda(): void {
 		this.agendaVisible = !this.agendaVisible;
 		this.persistAgendaVisible();
+	}
+
+	setAgendaWidth(width: number): void {
+		// Clamp width to min/max bounds
+		this.agendaWidth = Math.max(MIN_AGENDA_WIDTH, Math.min(MAX_AGENDA_WIDTH, width));
+		this.persistAgendaWidth();
 	}
 }
