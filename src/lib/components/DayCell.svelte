@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CalendarEvent } from '$lib/types/events';
-	import { isToday } from '$lib/utils/date-helpers';
+	import { isToday, startOfDay } from '$lib/utils/date-helpers';
 	import { format } from 'date-fns';
 	import EventBar from './EventBar.svelte';
 
@@ -26,6 +26,7 @@
 
 	let today = $derived(isToday(date));
 	let dayNumber = $derived(format(date, 'd'));
+	let isPast = $derived(date < startOfDay(new Date()));
 
 	// Dynamic visibility based on container height
 	let containerEl: HTMLDivElement | undefined = $state(undefined);
@@ -122,6 +123,34 @@
 	let visibleEvents = $derived(events.slice(0, maxVisible));
 	let overflowCount = $derived(Math.max(0, events.length - maxVisible));
 
+	// Calculate overflow data with calendar info
+	let overflowData = $derived.by(() => {
+		if (overflowCount === 0) return null;
+
+		const hiddenEvents = events.slice(maxVisible);
+		// Get unique calendars with their names and colors
+		const calendarMap = new Map<string, { name: string; colour: string }>();
+		hiddenEvents.forEach((e) => {
+			if (!calendarMap.has(e.calendarId)) {
+				calendarMap.set(e.calendarId, { name: e.calendarName, colour: e.colour });
+			}
+		});
+		const calendars = Array.from(calendarMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+		if (calendars.length === 1) {
+			return { type: 'single', count: overflowCount, calendar: calendars[0] };
+		} else if (calendars.length === 2) {
+			const messageLength = `+${overflowCount} in ${calendars[0].name} and ${calendars[1].name}`.length;
+			// If message is too long (> 30 chars), use count instead
+			if (messageLength > 30) {
+				return { type: 'count', count: overflowCount, calendarCount: calendars.length };
+			}
+			return { type: 'double', count: overflowCount, calendars };
+		} else {
+			return { type: 'count', count: overflowCount, calendarCount: calendars.length };
+		}
+	});
+
 	// Variant-specific classes
 	let containerClasses = $derived(
 		variant === 'next-week'
@@ -169,8 +198,16 @@
 				</div>
 			{/each}
 
-			{#if overflowCount > 0}
-				<div class="text-sm text-text">+{overflowCount} more</div>
+			{#if overflowData}
+				<div class="text-sm text-text-secondary" style="opacity: {isPast ? 0.5 : 1}">
+					{#if overflowData.type === 'single'}
+						+{overflowData.count} in <span style="color: {overflowData.calendar.colour}">{overflowData.calendar.name}</span>
+					{:else if overflowData.type === 'double'}
+						+{overflowData.count} in <span style="color: {overflowData.calendars[0].colour}">{overflowData.calendars[0].name}</span> and <span style="color: {overflowData.calendars[1].colour}">{overflowData.calendars[1].name}</span>
+					{:else}
+						+{overflowData.count} in {overflowData.calendarCount} calendars
+					{/if}
+				</div>
 			{/if}
 		</div>
 	</div>
