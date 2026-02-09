@@ -13,6 +13,7 @@
 	import {
 		calculateSpans,
 		packSpanningEvents,
+		SPANNING_ROW_HEIGHT,
 		type PackedSpanningEvent
 	} from '$lib/utils/spanning-events';
 	import DayColumn from './DayColumn.svelte';
@@ -48,7 +49,6 @@
 	}
 
 	// Calculate spanning layout for all-day events
-	const ALL_DAY_ROW_HEIGHT = 1.5; // rem per row
 	let packedAllDayEvents = $derived.by(() => {
 		const spans = calculateSpans(allDayEvents, days);
 		return packSpanningEvents(spans);
@@ -78,11 +78,11 @@
 		<div class="grid grid-cols-[4rem_repeat(7,1fr)] border-b-2 border-border shrink-0">
 			<div
 				class="text-sm font-medium text-text-secondary px-1 py-1 text-right"
-				style="height: {allDayRowCount * ALL_DAY_ROW_HEIGHT + 0.5}rem"
+				style="height: {allDayRowCount * SPANNING_ROW_HEIGHT + 0.125}rem"
 			>
 				All day
 			</div>
-			<div class="col-span-7 relative" style="height: {allDayRowCount * ALL_DAY_ROW_HEIGHT + 0.5}rem">
+			<div class="col-span-7 relative" style="height: {allDayRowCount * SPANNING_ROW_HEIGHT + 0.125}rem">
 				<!-- Day column borders -->
 				<div class="absolute inset-0 grid grid-cols-7">
 					{#each days as day (day.toISOString())}
@@ -91,7 +91,7 @@
 				</div>
 				<!-- Spanning event bars -->
 				{#each packedAllDayEvents as packed (packed.event.id)}
-					<SpanningEventBar {packed} rowHeight={ALL_DAY_ROW_HEIGHT} {timeFormat} includeBasePadding={true} />
+					<SpanningEventBar {packed} rowHeight={SPANNING_ROW_HEIGHT} {timeFormat} includeBasePadding={true} />
 				{/each}
 			</div>
 		</div>
