@@ -98,7 +98,14 @@
 				} else {
 					// Calculate max that can fit with "+X more" indicator
 					const maxWithIndicator = Math.floor((available - moreIndicatorHeight) / eventHeight);
-					maxVisible = Math.max(1, maxWithIndicator);
+					const overflow = events.length - maxWithIndicator;
+
+					// If we're only hiding 1 event, just show all events instead
+					if (overflow <= 1) {
+						maxVisible = events.length;
+					} else {
+						maxVisible = Math.max(1, maxWithIndicator);
+					}
 				}
 			}
 		};
