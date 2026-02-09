@@ -37,5 +37,5 @@
 		</svg>
 	</button>
 
-	<h2 class="text-xl font-bold ml-2">{label}</h2>
+	<h2 class="text-xl font-bold ml-2 whitespace-nowrap">{label}</h2>
 </div>

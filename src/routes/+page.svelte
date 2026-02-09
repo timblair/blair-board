@@ -47,9 +47,9 @@
 <div class="h-screen flex flex-col bg-bg">
 	<!-- Header -->
 	<header class="relative shrink-0 px-4 py-3 bg-surface border-b-2 border-border">
-		<div class="flex items-center justify-between">
+		<div class="flex items-center justify-between gap-8">
 			<div class="flex items-center gap-4">
-				<h1 class="text-2xl font-bold">Blair Board</h1>
+				<h1 class="text-2xl font-bold whitespace-nowrap">Blair Board</h1>
 				<DateNavigation
 					label={cal.periodLabel}
 					onprevious={() => cal.navigatePrevious()}
@@ -66,10 +66,12 @@
 						ontoggle={(id) => cal.toggleCalendarVisibility(id)}
 					/>
 				{/if}
-				<ViewSwitcher
-					currentView={cal.currentView}
-					onchange={(view) => cal.setView(view)}
-				/>
+				<div class="shrink-0">
+					<ViewSwitcher
+						currentView={cal.currentView}
+						onchange={(view) => cal.setView(view)}
+					/>
+				</div>
 			</div>
 		</div>
 
