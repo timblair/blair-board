@@ -138,6 +138,7 @@
 				<div class="shrink-0">
 					<ViewSwitcher
 						currentView={cal.currentView}
+						enabledViews={cal.config?.display.enabledViews ?? ["week", "weeknext", "4week", "month"]}
 						onchange={(view) => cal.setView(view)}
 					/>
 				</div>

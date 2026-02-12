@@ -24,6 +24,7 @@
 	],
 	"display": {
 		"defaultView": "week",
+		"enabledViews": ["week", "weeknext", "4week", "month"],
 		"agendaDays": 2,
 		"weekStartsOn": 1,
 		"timeFormat": "24h",

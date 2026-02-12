@@ -47,6 +47,18 @@ export class CalendarState {
 		return 'week';
 	}
 
+	ensureViewEnabled(): void {
+		const enabledViews = this.config?.display.enabledViews;
+		if (!enabledViews) return;
+		if (!enabledViews.includes(this.currentView)) {
+			const defaultView = this.config?.display.defaultView;
+			const fallback =
+				defaultView && enabledViews.includes(defaultView) ? defaultView : enabledViews[0];
+			this.currentView = fallback;
+			this.persistView(fallback);
+		}
+	}
+
 	private persistView(view: CalendarView): void {
 		if (typeof window === 'undefined') return;
 		try {
@@ -183,6 +195,7 @@ export class CalendarState {
 			const data = await res.json();
 			this.events = data.events;
 			this.config = data.config;
+			this.ensureViewEnabled();
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : 'Failed to fetch events';
 			console.error('Failed to fetch calendar events:', err);

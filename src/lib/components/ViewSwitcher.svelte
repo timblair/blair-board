@@ -3,17 +3,20 @@
 
 	interface Props {
 		currentView: CalendarView;
+		enabledViews: CalendarView[];
 		onchange: (view: CalendarView) => void;
 	}
 
-	let { currentView, onchange }: Props = $props();
+	let { currentView, enabledViews, onchange }: Props = $props();
 
-	const views: { value: CalendarView; label: string }[] = [
+	const allViews: { value: CalendarView; label: string }[] = [
 		{ value: 'week', label: 'Week' },
 		{ value: 'weeknext', label: 'Week+Next' },
 		{ value: '4week', label: '4 Week' },
 		{ value: 'month', label: 'Month' }
 	];
+
+	const views = $derived(allViews.filter((v) => enabledViews.includes(v.value)));
 </script>
 
 <div class="flex rounded-lg border-2 border-border bg-surface overflow-hidden">
