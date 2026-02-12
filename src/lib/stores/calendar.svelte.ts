@@ -142,7 +142,13 @@ export class CalendarState {
 	}
 
 	get visibleEvents(): CalendarEvent[] {
-		return this.events.filter((e) => !this.hiddenCalendarIds.has(e.calendarId));
+		const calendarMap = new Map(this.config?.calendars.map((c) => [c.id, c]) ?? []);
+		return this.events.filter((e) => {
+			if (this.hiddenCalendarIds.has(e.calendarId)) return false;
+			const cal = calendarMap.get(e.calendarId);
+			if (cal && !e.allDay && cal.hideTimedEvents) return false;
+			return true;
+		});
 	}
 
 	get agendaEvents(): CalendarEvent[] {

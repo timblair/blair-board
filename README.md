@@ -133,6 +133,7 @@ All settings are in `config.json` (gitignored). See `config.example.json` for th
 | `calendars[].url` | string | required | iCal feed URL (.ics) |
 | `calendars[].colour` | string | required | Hex colour for events (e.g. `#4285F4`) |
 | `calendars[].enabled` | boolean | required | Show/hide this calendar |
+| `calendars[].hideTimedEvents` | boolean | `false` | Hide timed (non-all-day) events from this calendar |
 | `display.defaultView` | `"week"` \| `"weeknext"` \| `"4week"` \| `"month"` | `"week"` | View shown on load (must be in `enabledViews`) |
 | `display.enabledViews` | array of view names | all four views | Which views appear in the view switcher |
 | `display.agendaDays` | 1-14 | `2` | Number of days in the agenda sidebar |

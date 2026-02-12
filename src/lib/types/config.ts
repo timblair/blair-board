@@ -5,7 +5,8 @@ export const CalendarSourceSchema = z.object({
 	name: z.string(),
 	url: z.url(),
 	colour: z.string(),
-	enabled: z.boolean()
+	enabled: z.boolean(),
+	hideTimedEvents: z.boolean().default(false)
 });
 
 export const DisplayConfigSchema = z.object({
@@ -40,7 +41,13 @@ export type AppConfig = z.infer<typeof AppConfigSchema>;
 
 export interface ClientConfig {
 	display: DisplayConfig;
-	calendars: Array<{ id: string; name: string; colour: string; enabled: boolean }>;
+	calendars: Array<{
+		id: string;
+		name: string;
+		colour: string;
+		enabled: boolean;
+		hideTimedEvents: boolean;
+	}>;
 	refresh: RefreshConfig;
 	timezone: string;
 }
