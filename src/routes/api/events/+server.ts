@@ -36,7 +36,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			id: c.id,
 			name: c.name,
 			colour: c.colour,
-			enabled: c.enabled
+			enabled: c.enabled,
+			hideTimedEvents: c.hideTimedEvents
 		})),
 		refresh: config.refresh,
 		timezone: config.timezone
